@@ -12,7 +12,7 @@ public interface StudentService {
     Page<Student> findByEmail(String email, Pageable pageable);
 
     Optional<Student> findById(Long id);
-    Student save(Student teacher);
+    Student save(Student student);
     void deleteById(Long id);
     Optional<Student> findByUsername(String username);
     Optional<Student> findByEmail(String email);
