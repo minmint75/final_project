@@ -23,10 +23,10 @@ public class RoleBasedSuccessHandler implements AuthenticationSuccessHandler {
             if (role.equals("ROLE_ADMIN")) {
                 redirectUrl = "/admin/dashboard";
                 break;
-            } else if (role.equals("ROLE_GIẢNG_VIÊN")) {
+            } else if (role.equals("ROLE_TEACHER")) {
                 redirectUrl = "/teacher/dashboard";
                 break;
-            } else if (role.equals("ROLE_HỌC_VIÊN")) {
+            } else if (role.equals("ROLE_STUDENT")) {
                 redirectUrl = "/student/dashboard";
                 break;
             }
