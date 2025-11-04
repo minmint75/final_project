@@ -12,4 +12,5 @@ public interface TeacherService {
     Teacher save(Teacher teacher);
     void deleteById(Long id);
     Optional<Teacher> findByUsername(String username);
+    Optional<Teacher> findByEmail(String email);
 }
