@@ -30,6 +30,9 @@ public class Student {
     @NotBlank(message = "Tên học viên không được để trống")
     private String username;
 
+    @Column(nullable = false)
+    private String password;
+
     @Column(name = "email", length = 100)
     @Email(message = "Email không hợp lệ")
     private String email;

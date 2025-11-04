@@ -15,6 +15,7 @@ public class TeacherRequest {
     private Long teacherId;
     private String username;
     private String email;
+    private String password;
     private LocalDateTime lastVisit;
     private Teacher.TeacherStatus status;
 
@@ -25,6 +26,7 @@ public class TeacherRequest {
         return new TeacherRequest(
                 teacher.getTeacherId(),
                 teacher.getUsername(),
+                teacher.getPassword(),
                 teacher.getEmail(),
                 teacher.getLastVisit(),
                 teacher.getStatus()
@@ -35,6 +37,7 @@ public class TeacherRequest {
         Teacher teacher = new Teacher();
         teacher.setTeacherId(this.teacherId);
         teacher.setUsername(this.username);
+        teacher.setPassword(this.password);
         teacher.setEmail(this.email);
         teacher.setLastVisit(this.lastVisit);
         teacher.setStatus(this.status);
