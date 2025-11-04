@@ -5,8 +5,11 @@ import com.example.final_project.repository.TeacherRepository;
 import com.example.final_project.service.TeacherService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import com.example.final_project.dto.TeacherSearchRequest;
 
 import java.util.Optional;
 
@@ -21,8 +24,23 @@ public class TeacherServiceImpl implements TeacherService {
     }
 
     @Override
-    public Page<Teacher> searchTeachers(String keyword, Pageable pageable) {
-        return teacherRepository.searchTeachers(keyword, pageable);
+    public Page<Teacher> searchTeachers(TeacherSearchRequest request) {
+
+        Sort sort = Sort.by(
+                request.isAscending() ? Sort.Direction.ASC : Sort.Direction.DESC,
+                request.getSort()
+        );
+
+        Pageable pageable = PageRequest.of(
+                request.getPage(),
+                request.getSize(),
+                sort
+        );
+
+        return teacherRepository.searchTeachers(
+                request.getUsername(),
+                pageable
+        );
     }
 
     @Override
