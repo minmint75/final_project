@@ -15,8 +15,8 @@ import java.util.Optional;
     public interface TeacherRepository extends JpaRepository<Teacher, Long>{
     Optional<Teacher> findByUsername(String username);
     Page<Teacher> findByUsername(String username, Pageable pageable);
-    Optional<Teacher> findByEmail(String email, Pageable pageable);
-    Page<Teacher> findByEmail(String email);
+    Optional<Teacher> findByEmail(String email);
+    Page<Teacher> findByEmail(String email,  Pageable pageable);
 
     @Query("SELECT t FROM Teacher t WHERE " +
             "LOWER(t.username) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +

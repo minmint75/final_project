@@ -8,6 +8,9 @@ import java.util.Optional;
 public interface TeacherService {
 
     Page<Teacher> searchTeachers(String keyword, Pageable pageable);
+
+    Page<Teacher> findByEmail(String email, Pageable pageable);
+
     Optional<Teacher> findById(Long id);
     Teacher save(Teacher teacher);
     void deleteById(Long id);
