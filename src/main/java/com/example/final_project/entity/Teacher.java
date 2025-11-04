@@ -22,9 +22,13 @@ public class Teacher {
     @Column(name = "teacher_id", nullable = false)
     private Long teacherId;
 
-    @Column(name = "name", nullable = false, length = 100)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role_name")
+    private RoleName roleName = RoleName.TEACHER;
+
+    @Column(name = "user_name", nullable = false, length = 100)
     @NotBlank(message = "Tên giảng viên không được để trống")
-    private String name;
+    private String username;
 
     @Column(name = "email", length = 100)
     @Email(message = "Email không hợp lệ")
