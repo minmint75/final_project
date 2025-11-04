@@ -50,8 +50,8 @@ public class Teacher {
 
     public enum TeacherStatus {
         PENDING("Đang chờ xác nhận"),
-        ACTIVE("Hoạt động"),
-        LOCKED("Bị khóa");
+        APPROVED("Xác nhận"),
+        REJECTED("Bị từ chối");
 
         private final String displayName;
 
