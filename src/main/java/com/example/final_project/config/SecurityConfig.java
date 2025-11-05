@@ -32,7 +32,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 // Cấu hình Authorization
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/login", "/", "/css/**", "/js/**").permitAll() // Cho phép truy cập công khai
+                        .requestMatchers("/login", "/", "/css/**", "/js/**", "/register").permitAll() // Cho phép truy cập công khai
                         .requestMatchers("/admin/**").hasRole("ADMIN")                 // Chỉ ADMIN truy cập khu vực /admin
                         .requestMatchers("/teacher/**").hasAnyRole("ADMIN", "TEACHER") // ADMIN và TEACHER truy cập /teacher
                         .requestMatchers("/student/**").hasRole("STUDENT")            // Chỉ STUDENT truy cập khu vực /student

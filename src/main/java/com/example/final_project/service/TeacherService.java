@@ -4,6 +4,8 @@ import com.example.final_project.dto.TeacherSearchRequest;
 import com.example.final_project.entity.Teacher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 import java.util.Optional;
 
 public interface TeacherService {
@@ -17,4 +19,8 @@ public interface TeacherService {
     void deleteById(Long id);
     Optional<Teacher> findByUsername(String username);
     Optional<Teacher> findByEmail(String email);
+
+    List<Teacher> getPendingTeachers();
+    void approveTeacher(Long teacherId);
+    void rejectTeacher(Long teacherId);
 }
