@@ -10,6 +10,8 @@ import java.util.Optional;
 
 public interface TeacherService {
 
+    List<Teacher> findAll();
+
     Page<Teacher> searchTeachers(TeacherSearchRequest request);
 
     Page<Teacher> findByEmail(String email, Pageable pageable);

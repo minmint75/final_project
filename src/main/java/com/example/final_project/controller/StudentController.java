@@ -10,12 +10,19 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/students")
 public class StudentController {
 
     @Autowired
     private StudentService studentService;
+
+    @GetMapping("/all")
+    public List<Student> getAllStudents() {
+        return studentService.findAll();
+    }
 
     @GetMapping
     public Page<Student> getAllStudents(@RequestParam(required = false) String keyword, Pageable pageable) {

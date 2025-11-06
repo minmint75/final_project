@@ -10,12 +10,19 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/teachers")
 public class TeacherController {
 
     @Autowired
     private TeacherService teacherService;
+
+    @GetMapping("/all")
+    public List<Teacher> getAllTeachers() {
+        return teacherService.findAll();
+    }
 
     @GetMapping
     public Page<Teacher> getAllTeachers(TeacherSearchRequest request) {
