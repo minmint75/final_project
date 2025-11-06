@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/teachers")
+@RequestMapping("/teachers")
 public class TeacherController {
 
     @Autowired
