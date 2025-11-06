@@ -27,6 +27,11 @@ public class TeacherServiceImpl implements TeacherService {
     private EmailService emailService;
 
     @Override
+    public List<Teacher> findAll() {
+        return teacherRepository.findAll();
+    }
+
+    @Override
     public Page<Teacher> searchTeachers(TeacherSearchRequest request) {
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
         return teacherRepository.findAll((Specification<Teacher>) (root, query, criteriaBuilder) -> {
