@@ -4,6 +4,7 @@ import com.example.final_project.service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -11,9 +12,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
-import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -30,16 +28,17 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
+                .cors(Customizer.withDefaults())
                 // Cấu hình Authorization
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/login", "/", "/css/**", "/js/**", "/register").permitAll() // Cho phép truy cập công khai
+                        .requestMatchers("/login", "/", "/css/**", "/js/**", "/register", "/perform_login").permitAll() // Cho phép truy cập công khai
                         .requestMatchers("/admin/**").hasRole("ADMIN")                 // Chỉ ADMIN truy cập khu vực /admin
                         .requestMatchers("/teacher/**").hasAnyRole("ADMIN", "TEACHER") // ADMIN và TEACHER truy cập /teacher
                         .requestMatchers("/student/**").hasRole("STUDENT")            // Chỉ STUDENT truy cập khu vực /student
                         .requestMatchers("/api/profile/**").authenticated()
                         .anyRequest().authenticated()
                 )
-.formLogin(form -> form
+                .formLogin(form -> form
                         .loginPage("http://localhost:3000/login")
                         .loginProcessingUrl("/perform_login")
                         .successHandler(customAuthenticationSuccessHandler())
@@ -49,9 +48,11 @@ public class SecurityConfig {
                 // Cấu hình Logout
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout")
+                        .logoutSuccessUrl("http://localhost:3000/login?logout")
                         .permitAll()
-                );
+                )
+                // Sử dụng UserDetailsService + BCrypt cho xác thực
+                .authenticationProvider(daoAuthenticationProvider());
 
         return http.build();
     }
@@ -59,6 +60,14 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public DaoAuthenticationProvider daoAuthenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
     }
 
     @Bean
