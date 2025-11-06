@@ -1,5 +1,6 @@
 package com.example.final_project.service.serviceImpl;
 
+import com.example.final_project.dto.PasswordResetDto;
 import com.example.final_project.entity.PasswordResetToken;
 import com.example.final_project.entity.Student;
 import com.example.final_project.entity.Teacher;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
+
+import java.util.Random;
 
 @Service
 public class PasswordResetServiceImpl implements PasswordResetService {
@@ -35,7 +38,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     private PasswordEncoder passwordEncoder;
 
     @Override
-    public void createPasswordResetTokenForUser(String email) {
+    public void createPasswordResetOtpForUser(String email) {
         Optional<Student> studentOpt = studentRepository.findByEmail(email);
         Optional<Teacher> teacherOpt = teacherRepository.findByEmail(email);
 
@@ -43,7 +46,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             throw new RuntimeException("User with this email not found");
         }
 
-        String token = UUID.randomUUID().toString();
+        String token = String.format("%06d", new Random().nextInt(999999));
         LocalDateTime expiryDate = LocalDateTime.now().plusHours(1);
 
         PasswordResetToken myToken = new PasswordResetToken(token, email, expiryDate);
@@ -53,7 +56,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     }
 
     @Override
-    public void resetPassword(String token, String newPassword) {
+    public void validateToken(String token) {
         PasswordResetToken resetToken = tokenRepository.findByToken(token);
 
         if (resetToken == null) {
@@ -64,11 +67,24 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             tokenRepository.delete(resetToken);
             throw new RuntimeException("Token has expired");
         }
+    }
 
+    @Override
+    public void resetPassword(PasswordResetDto passwordResetDto) {
+        validateToken(passwordResetDto.getToken());
+
+        if (!passwordResetDto.getNewPassword().equals(passwordResetDto.getConfirmPassword())) {
+            throw new RuntimeException("Passwords do not match");
+        }
+
+        PasswordResetToken resetToken = tokenRepository.findByToken(passwordResetDto.getToken());
         Optional<Student> studentOpt = studentRepository.findByEmail(resetToken.getEmail());
         if (studentOpt.isPresent()) {
             Student student = studentOpt.get();
-            student.setPassword(passwordEncoder.encode(newPassword));
+            if (passwordEncoder.matches(passwordResetDto.getNewPassword(), student.getPassword())) {
+                throw new RuntimeException("New password cannot be the same as the old password");
+            }
+            student.setPassword(passwordEncoder.encode(passwordResetDto.getNewPassword()));
             studentRepository.save(student);
             tokenRepository.delete(resetToken);
             return;
@@ -77,7 +93,10 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         Optional<Teacher> teacherOpt = teacherRepository.findByEmail(resetToken.getEmail());
         if (teacherOpt.isPresent()) {
             Teacher teacher = teacherOpt.get();
-            teacher.setPassword(passwordEncoder.encode(newPassword));
+            if (passwordEncoder.matches(passwordResetDto.getNewPassword(), teacher.getPassword())) {
+                throw new RuntimeException("New password cannot be the same as the old password");
+            }
+            teacher.setPassword(passwordEncoder.encode(passwordResetDto.getNewPassword()));
             teacherRepository.save(teacher);
             tokenRepository.delete(resetToken);
             return;

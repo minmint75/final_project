@@ -21,8 +21,18 @@ public class PasswordResetController {
     public ResponseEntity<String> forgotPassword(@RequestBody Map<String, String> request) {
         try {
             String email = request.get("email");
-            passwordResetService.createPasswordResetTokenForUser(email);
-            return ResponseEntity.ok("Password reset link sent to your email.");
+            passwordResetService.createPasswordResetOtpForUser(email);
+            return ResponseEntity.ok("OTP for password reset has been sent to your email.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/validate-token")
+    public ResponseEntity<String> validateToken(@RequestParam String token) {
+        try {
+            passwordResetService.validateToken(token);
+            return ResponseEntity.ok("Token is valid.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -31,7 +41,7 @@ public class PasswordResetController {
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestBody PasswordResetDto passwordResetDto) {
         try {
-            passwordResetService.resetPassword(passwordResetDto.getToken(), passwordResetDto.getNewPassword());
+            passwordResetService.resetPassword(passwordResetDto);
             return ResponseEntity.ok("Password has been reset successfully.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

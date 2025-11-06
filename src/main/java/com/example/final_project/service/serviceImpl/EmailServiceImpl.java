@@ -66,8 +66,7 @@ public class EmailServiceImpl implements EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
             helper.setTo(to);
             helper.setSubject("Password Reset Request");
-            String resetUrl = "http://localhost:3000/reset-password?token=" + token;
-            helper.setText("To reset your password, click the link below:\n" + resetUrl, true);
+            helper.setText("Your OTP for password reset is: " + token, true);
             mailSender.send(message);
         } catch (MessagingException e) {
             // In dev, do not fail the whole flow

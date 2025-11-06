@@ -1,6 +1,9 @@
 package com.example.final_project.service;
 
+import com.example.final_project.dto.PasswordResetDto;
+
 public interface PasswordResetService {
-    void createPasswordResetTokenForUser(String email);
-    void resetPassword(String token, String newPassword);
+    void createPasswordResetOtpForUser(String email);
+    void validateToken(String token);
+    void resetPassword(PasswordResetDto passwordResetDto);
 }
