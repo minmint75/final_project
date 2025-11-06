@@ -27,17 +27,22 @@ public class CustomUserDetailsService implements UserDetailsService {
 
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
 
-        return adminRepository.findByUsername(username)
+        // Try Admin by username only
+        return adminRepository.findByUsername(usernameOrEmail)
                 .map(admin -> buildUserDetails(admin.getUsername(), admin.getPassword(), admin.getRoleName()))
                 .orElseGet(() ->
-                        teacherRepository.findByUsername(username)
+                        // Try Teacher by username or email
+                        teacherRepository.findByUsername(usernameOrEmail)
+                                .or(() -> teacherRepository.findByEmail(usernameOrEmail))
                                 .map(teacher -> buildUserDetails(teacher.getUsername(), teacher.getPassword(), teacher.getRoleName()))
                                 .orElseGet(() ->
-                                        studentRepository.findByUsername(username)
+                                        // Try Student by username or email
+                                        studentRepository.findByUsername(usernameOrEmail)
+                                                .or(() -> studentRepository.findByEmail(usernameOrEmail))
                                                 .map(student -> buildUserDetails(student.getUsername(), student.getPassword(), student.getRoleName()))
-                                                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng: " + username))
+                                                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng: " + usernameOrEmail))
                                 )
                 );
     }
