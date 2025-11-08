@@ -12,7 +12,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Student")
+@Table(name = "Student", uniqueConstraints = {
+    @UniqueConstraint(columnNames = "email", name = "uk_student_email")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -31,10 +33,12 @@ public class Student {
     private String username;
 
     @Column(nullable = false)
+    @NotBlank(message = "Mật khẩu không được để trống")
     private String password;
 
-    @Column(name = "email", length = 100)
+    @Column(name = "email", length = 100, nullable = false, unique = true)
     @Email(message = "Email không hợp lệ")
+    @NotBlank(message = "Email không được để trống")
     private String email;
 
     private String avatar;
@@ -47,7 +51,8 @@ public class Student {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private StudentStatus status;
+    @NotNull(message = "Status không được để trống")
+    private StudentStatus status = StudentStatus.ACTIVE;
 
     @PrePersist
     protected void onCreate() {
