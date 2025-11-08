@@ -39,14 +39,36 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
+    public void sendTeacherPendingEmail(String to) {
+        if (!emailEnabled) return;
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(to);
+            message.setSubject("Đơn đăng ký giáo viên đang chờ xem xét");
+            message.setText("Xin chào,\n\nCảm ơn bạn đã đăng ký trở thành giáo viên trên QuizzZone. " +
+                    "Tài khoản của bạn hiện đang chờ phê duyệt từ quản trị viên. " +
+                    "Chúng tôi sẽ gửi cho bạn một email thông báo khi tài khoản của bạn được xem xét.\n\n" +
+                    "Trân trọng,\n" +
+                    "Nhóm QuizzZone");
+            mailSender.send(message);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
     public void sendTeacherApprovalEmail(String to) {
         if (!emailEnabled) return;
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
             message.setTo(to);
-            message.setSubject("Teacher Account Approved");
-            message.setText("Congratulations! Your teacher account has been approved by the admin.");
+            message.setSubject("Tài khoản giáo viên đã được phê duyệt");
+            message.setText("Xin chào,\n\nChúc mừng! Tài khoản giáo viên của bạn đã được phê duyệt bởi quản trị viên. " +
+                    "Bạn hiện có thể đăng nhập và bắt đầu sử dụng QuizzZone.\n\n" +
+                    "Trân trọng,\n" +
+                    "Nhóm QuizzZone");
             mailSender.send(message);
         } catch (Exception e) {
             e.printStackTrace();
@@ -60,8 +82,11 @@ public class EmailServiceImpl implements EmailService {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
             message.setTo(to);
-            message.setSubject("Teacher Account Rejected");
-            message.setText("We regret to inform you that your teacher account registration has been rejected.");
+            message.setSubject("Đơn đăng ký giáo viên bị từ chối");
+            message.setText("Xin chào,\n\nRất tiếc, chúng tôi phải thông báo rằng đơn đăng ký giáo viên của bạn bị từ chối. " +
+                    "Nếu bạn có câu hỏ, vui lòng liên hệ quản trị viên.\n\n" +
+                    "Trân trọng,\n" +
+                    "Nhóm QuizzZone");
             mailSender.send(message);
         } catch (Exception e) {
             e.printStackTrace();

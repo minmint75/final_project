@@ -69,7 +69,7 @@ public class RegistrationServiceImpl implements RegistrationService {
                 teacher.setStatus(Teacher.TeacherStatus.PENDING);
                 teacher.setRoleName(com.example.final_project.entity.RoleName.TEACHER);
                 teacherRepository.save(teacher);
-                // Notify admin for approval
+                emailService.sendTeacherPendingEmail(teacher.getEmail());
                 break;
             default:
                 throw new IllegalArgumentException("Invalid role specified for registration.");
