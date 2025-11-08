@@ -1,62 +1,20 @@
 package com.example.final_project.config;
 
-import com.example.final_project.service.CustomUserDetailsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import java.util.Arrays;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
-    @Autowired
-    private CustomUserDetailsService userDetailsService;
-
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
-                // Cấu hình Authorization
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/login", "/", "/css/**", "/js/**", "/register", "/perform_login", "/forgot-password", "/validate-token", "/reset-password").permitAll() // Cho phép truy cập công khai
-                        .requestMatchers("/admin/**").hasRole("ADMIN")                 // Chỉ ADMIN truy cập khu vực /admin
-                        .requestMatchers("/teacher/**").hasAnyRole("ADMIN", "TEACHER") // ADMIN và TEACHER truy cập /teacher
-                        .requestMatchers("/student/**").hasRole("STUDENT")            // Chỉ STUDENT truy cập khu vực /student
-                        .requestMatchers("/api/profile/**").authenticated()
-                        .anyRequest().authenticated()
-                )
-                .formLogin(form -> form
-                        .loginPage("http://localhost:3000/login")
-                        .loginProcessingUrl("/perform_login")
-                        .usernameParameter("email")
-                        .successHandler(customAuthenticationSuccessHandler())
-                        .failureUrl("http://localhost:3000/login?error")
-                        .permitAll()
-                )
-                // Cấu hình Logout
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("http://localhost:3000/login?logout")
-                        .permitAll()
-                )
-                // Sử dụng UserDetailsService + BCrypt cho xác thực
-                .authenticationProvider(daoAuthenticationProvider());
-
-        return http.build();
-    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -64,27 +22,65 @@ public class SecurityConfig {
     }
 
     @Bean
-    public DaoAuthenticationProvider daoAuthenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
-        return provider;
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable()) // Disabling CSRF for simplicity with SPA. Re-evaluate if using session cookies.
+            .authorizeHttpRequests(authz -> authz
+                .requestMatchers(HttpMethod.POST, "/api/perform_login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/perform_logout").permitAll()
+                .requestMatchers("/api/register/**", "/api/forgot-password", "/api/reset-password", "/api/validate-token").permitAll()
+                .requestMatchers("/uploads/**").permitAll()
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/student/**").hasRole("STUDENT")
+                .requestMatchers("/teacher/**").hasRole("TEACHER")
+                .anyRequest().authenticated()
+            )
+            .formLogin(form -> form
+                .loginProcessingUrl("/api/perform_login")
+                .usernameParameter("email") // from the frontend code, it uses 'email'
+                .passwordParameter("password")
+                .successHandler(successHandler())
+                .failureHandler(failureHandler())
+            )
+            .logout(logout -> logout
+                .logoutUrl("/api/perform_logout")
+                .logoutSuccessHandler(logoutSuccessHandler())
+            );
+
+        return http.build();
     }
 
-    @Bean
-    public AuthenticationSuccessHandler customAuthenticationSuccessHandler() {
-        return new RoleBasedSuccessHandler();
+    private AuthenticationSuccessHandler successHandler() {
+        return (request, response, authentication) -> {
+            response.setStatus(200);
+            response.setContentType("application/json");
+            String role = authentication.getAuthorities().stream()
+                .findFirst()
+                .map(Object::toString)
+                .orElse("");
+            
+            // Assuming roles are like "ROLE_STUDENT", "ROLE_TEACHER", "ROLE_ADMIN"
+            String roleName = role.replace("ROLE_", "");
+
+            String jsonResponse = String.format("{\"message\": \"Login successful\", \"role\": \"%s\"}", roleName);
+            response.getWriter().write(jsonResponse);
+            response.getWriter().flush();
+        };
     }
 
-    @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","OPTIONS"));
-        configuration.setAllowCredentials(true);
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
+    private AuthenticationFailureHandler failureHandler() {
+        return (request, response, exception) -> {
+            response.setStatus(401);
+            response.getWriter().write("{\"error\": \"Invalid credentials\"}");
+            response.getWriter().flush();
+        };
+    }
+
+    private LogoutSuccessHandler logoutSuccessHandler() {
+        return (request, response, authentication) -> {
+            response.setStatus(200);
+            response.getWriter().write("{\"message\": \"Logout successful\"}");
+            response.getWriter().flush();
+        };
     }
 }

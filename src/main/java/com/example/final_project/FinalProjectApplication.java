@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 
 
+import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.annotation.Resource;
 
 @SpringBootApplication
@@ -20,6 +21,9 @@ public class FinalProjectApplication {
 	FileStorageService storageService;
 
 	public static void main(String[] args) {
+		Dotenv dotenv = Dotenv.configure().load();
+		System.setProperty("GMAIL_USERNAME", dotenv.get("GMAIL_USERNAME"));
+		System.setProperty("GMAIL_PASSWORD", dotenv.get("GMAIL_PASSWORD"));
 		SpringApplication.run(FinalProjectApplication.class, args);
 	}
 

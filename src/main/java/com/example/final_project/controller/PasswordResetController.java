@@ -9,10 +9,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.HashMap;
 import java.util.Map;
 
 @RestController
+@RequestMapping("/api")
 public class PasswordResetController {
 
     @Autowired
@@ -30,10 +32,9 @@ public class PasswordResetController {
             
             String otp = passwordResetService.createPasswordResetOtpForUser(email);
             
-            // Return OTP in response for development testing
+            // OTP is no longer returned in the response for security reasons.
             Map<String, String> response = new HashMap<>();
             response.put("message", "OTP for password reset has been sent to your email.");
-            response.put("otp", otp); // For development/testing
             
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
