@@ -58,12 +58,11 @@ public class Student {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         if (status == null) {
-            status = StudentStatus.PENDING;
+            status = StudentStatus.ACTIVE;
         }
     }
 
     public enum StudentStatus {
-        PENDING("Đang chờ xác nhận"),
         ACTIVE("Hoạt động"),
         LOCKED("Bị khóa");
 
