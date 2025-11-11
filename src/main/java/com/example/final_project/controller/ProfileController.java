@@ -23,6 +23,18 @@ public class ProfileController {
     @Autowired
     private FileStorageService fileStorageService;
 
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> getProfile() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String currentUsername = authentication.getName();
+            Map<String, Object> profile = profileService.getProfile(currentUsername);
+            return ResponseEntity.ok(profile);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @PostMapping("/upload-avatar")
     public ResponseEntity<Map<String, String>> uploadAvatar(@RequestParam("file") MultipartFile file) {
         try {
@@ -42,6 +54,18 @@ public class ProfileController {
             String currentUsername = authentication.getName();
             profileService.updateProfile(currentUsername, request);
             return ResponseEntity.ok("Profile updated successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/delete-avatar")
+    public ResponseEntity<String> deleteAvatar() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String currentUsername = authentication.getName();
+            profileService.deleteAvatar(currentUsername);
+            return ResponseEntity.ok("Avatar deleted successfully");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
