@@ -15,6 +15,12 @@ public interface StudentService {
 
     Page<Student> findByEmail(String email, Pageable pageable);
 
+    Page<Student> searchByEmail(String email, Pageable pageable);
+
+    Page<Student> searchByUsername(String username, Pageable pageable);
+
+    Page<Student> searchByEmailAndUsername(String email, String username, Pageable pageable);
+
     Optional<Student> findById(Long id);
     Student save(Student student);
     void deleteById(Long id);

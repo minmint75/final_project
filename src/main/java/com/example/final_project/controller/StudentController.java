@@ -25,10 +25,27 @@ public class StudentController {
     }
 
     @GetMapping
-    public Page<Student> getAllStudents(@RequestParam(required = false) String keyword, Pageable pageable) {
-        if (keyword != null) {
+    public Page<Student> getAllStudents(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String username,
+            Pageable pageable) {
+        
+        // Nếu có email hoặc username riêng biệt, ưu tiên sử dụng chúng
+        if (email != null && !email.isEmpty() && username != null && !username.isEmpty()) {
+            // Tìm kiếm cả email và username
+            return studentService.searchByEmailAndUsername(email, username, pageable);
+        } else if (email != null && !email.isEmpty()) {
+            // Chỉ tìm theo email
+            return studentService.searchByEmail(email, pageable);
+        } else if (username != null && !username.isEmpty()) {
+            // Chỉ tìm theo username
+            return studentService.searchByUsername(username, pageable);
+        } else if (keyword != null && !keyword.isEmpty()) {
+            // Tìm theo keyword chung (cũ)
             return studentService.searchStudent(keyword, pageable);
         } else {
+            // Trả về tất cả
             return studentService.searchStudent("", pageable);
         }
     }

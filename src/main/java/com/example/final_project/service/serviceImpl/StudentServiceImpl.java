@@ -92,4 +92,19 @@ public class StudentServiceImpl implements StudentService {
     public Optional<Student> findByEmail(String email) {
         return studentRepository.findByEmail(email);
     }
+    
+    @Override
+    public Page<Student> searchByEmail(String email, Pageable pageable) {
+        return studentRepository.searchByEmail(email, pageable);
+    }
+    
+    @Override
+    public Page<Student> searchByUsername(String username, Pageable pageable) {
+        return studentRepository.searchByUsername(username, pageable);
+    }
+    
+    @Override
+    public Page<Student> searchByEmailAndUsername(String email, String username, Pageable pageable) {
+        return studentRepository.searchByEmailAndUsername(email, username, pageable);
+    }
 }
