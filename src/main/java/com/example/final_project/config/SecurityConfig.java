@@ -14,12 +14,21 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import com.example.final_project.service.TeacherService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    private final TeacherService teacherService;
+
+    public SecurityConfig(TeacherService teacherService) {
+        this.teacherService = teacherService;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -83,14 +92,33 @@ public class SecurityConfig {
         return (request, response, authentication) -> {
             response.setStatus(200);
             response.setContentType("application/json");
-            String role = authentication.getAuthorities().stream()
-                .findFirst()
-                .map(Object::toString)
-                .orElse("");
             
-            // Assuming roles are like "ROLE_STUDENT", "ROLE_TEACHER", "ROLE_ADMIN"
+            // Get user details
+            Object principal = authentication.getPrincipal();
+            String email = "";
+            String role = "";
+            
+            if (principal instanceof UserDetails) {
+                UserDetails userDetails = (UserDetails) principal;
+                email = userDetails.getUsername();
+                role = userDetails.getAuthorities().stream()
+                    .findFirst()
+                    .map(Object::toString)
+                    .orElse("");
+                
+                // If user is a teacher, update last visit
+                if (role.equals("ROLE_TEACHER")) {
+                    try {
+                        teacherService.updateLastVisit(email);
+                    } catch (Exception e) {
+                        // Log the error but don't fail the login
+                        System.err.println("Error updating last visit for teacher: " + e.getMessage());
+                    }
+                }
+            }
+            
+            // Prepare response
             String roleName = role.replace("ROLE_", "");
-
             String jsonResponse = String.format("{\"message\": \"Login successful\", \"role\": \"%s\"}", roleName);
             response.getWriter().write(jsonResponse);
             response.getWriter().flush();

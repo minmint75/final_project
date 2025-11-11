@@ -25,4 +25,5 @@ public interface TeacherService {
     List<Teacher> getPendingTeachers();
     void approveTeacher(Long teacherId);
     void rejectTeacher(Long teacherId);
+    void updateLastVisit(String email);
 }

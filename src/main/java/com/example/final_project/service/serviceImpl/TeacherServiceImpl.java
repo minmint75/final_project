@@ -96,4 +96,12 @@ public class TeacherServiceImpl implements TeacherService {
         teacherRepository.save(teacher);
         emailService.sendTeacherRejectionEmail(teacher.getEmail());
     }
+    
+    @Override
+    public void updateLastVisit(String email) {
+        Teacher teacher = teacherRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Teacher not found with email: " + email));
+        teacher.setLastVisit(java.time.LocalDateTime.now());
+        teacherRepository.save(teacher);
+    }
 }
