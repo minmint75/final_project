@@ -37,10 +37,10 @@ public class TeacherServiceImpl implements TeacherService {
         return teacherRepository.findAll((Specification<Teacher>) (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (StringUtils.hasText(request.getUsername())) {
-                predicates.add(criteriaBuilder.like(root.get("username"), "_" + request.getUsername() + "_"));
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("username")), "%" + request.getUsername().toLowerCase() + "%"));
             }
             if (StringUtils.hasText(request.getEmail())) {
-                predicates.add(criteriaBuilder.like(root.get("email"), "_" + request.getEmail() + "_"));
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), "%" + request.getEmail().toLowerCase() + "%"));
             }
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         }, pageable);
