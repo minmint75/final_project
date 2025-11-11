@@ -14,8 +14,8 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import com.example.final_project.service.StudentService;
 import com.example.final_project.service.TeacherService;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Arrays;
@@ -25,9 +25,11 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     private final TeacherService teacherService;
+    private final StudentService studentService;
 
-    public SecurityConfig(TeacherService teacherService) {
+    public SecurityConfig(TeacherService teacherService, StudentService studentService) {
         this.teacherService = teacherService;
+        this.studentService = studentService;
     }
 
     @Bean
@@ -106,14 +108,16 @@ public class SecurityConfig {
                     .map(Object::toString)
                     .orElse("");
                 
-                // If user is a teacher, update last visit
-                if (role.equals("ROLE_TEACHER")) {
-                    try {
+                // Update last visit for both teachers and students
+                try {
+                    if (role.equals("ROLE_TEACHER")) {
                         teacherService.updateLastVisit(email);
-                    } catch (Exception e) {
-                        // Log the error but don't fail the login
-                        System.err.println("Error updating last visit for teacher: " + e.getMessage());
+                    } else if (role.equals("ROLE_STUDENT")) {
+                        studentService.updateLastVisit(email);
                     }
+                } catch (Exception e) {
+                    // Log the error but don't fail the login
+                    System.err.println("Error updating last visit for " + role + ": " + e.getMessage());
                 }
             }
             

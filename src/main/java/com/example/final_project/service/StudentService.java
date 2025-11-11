@@ -26,4 +26,5 @@ public interface StudentService {
     void deleteById(Long id);
     Optional<Student> findByUsername(String username);
     Optional<Student> findByEmail(String email);
+    void updateLastVisit(String email);
 }
