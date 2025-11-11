@@ -107,4 +107,12 @@ public class StudentServiceImpl implements StudentService {
     public Page<Student> searchByEmailAndUsername(String email, String username, Pageable pageable) {
         return studentRepository.searchByEmailAndUsername(email, username, pageable);
     }
+    
+    @Override
+    public void updateLastVisit(String email) {
+        Student student = studentRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Student not found with email: " + email));
+        student.setLastVisit(java.time.LocalDateTime.now());
+        studentRepository.save(student);
+    }
 }
