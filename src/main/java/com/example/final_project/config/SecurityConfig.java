@@ -41,12 +41,12 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable()) // Disabling CSRF for simplicity with SPA. Re-evaluate if using session cookies.
+
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers(HttpMethod.POST, "/api/perform_login").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/perform_logout").permitAll()
-                .requestMatchers(HttpMethod.POST, "/register").permitAll()
-                .requestMatchers(HttpMethod.GET, "/test").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/logout").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/register").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/test").permitAll()
                 .requestMatchers("/api/register/**", "/api/forgot-password", "/api/reset-password", "/api/validate-token").permitAll()
                 .requestMatchers("/uploads/**").permitAll()
                 .requestMatchers("/api/change-password").authenticated()
@@ -56,14 +56,14 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
-                .loginProcessingUrl("/api/perform_login")
+                .loginProcessingUrl("/api/login")
                 .usernameParameter("email") // from the frontend code, it uses 'email'
                 .passwordParameter("password")
                 .successHandler(successHandler())
                 .failureHandler(failureHandler())
             )
             .logout(logout -> logout
-                .logoutUrl("/api/perform_logout")
+                .logoutUrl("/api/logout")
                 .logoutSuccessHandler(logoutSuccessHandler())
             )
             .exceptionHandling(ex -> ex

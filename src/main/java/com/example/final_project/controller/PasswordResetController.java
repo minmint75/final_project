@@ -4,12 +4,8 @@ import com.example.final_project.dto.PasswordResetDto;
 import com.example.final_project.service.PasswordResetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -105,4 +101,11 @@ public class PasswordResetController {
             return ResponseEntity.status(500).body(errorResponse);
         }
     }
+    @GetMapping("/test")
+            public String testEndpoint() {
+                     // In ra để chúng ta biết nó đã được gọi
+                     System.out.println(">>> /api/test endpoint was successfully hit! <<<");
+                     return "Backend is reachable!";
+                 }
+
 }

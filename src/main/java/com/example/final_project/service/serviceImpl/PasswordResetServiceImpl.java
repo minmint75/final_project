@@ -13,11 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.Optional;
-import java.util.UUID;
-
-import java.util.Random;
 
 @Service
 public class PasswordResetServiceImpl implements PasswordResetService {
@@ -56,8 +55,11 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             // Ignore if no existing token
         }
 
-        // Generate a unique token using UUID to avoid collisions
-        String token = String.format("%06d", new Random().nextInt(999999));
+        // Generate a cryptographically secure, URL-safe token
+        SecureRandom secureRandom = new SecureRandom();
+        byte[] tokenBytes = new byte[32];
+        secureRandom.nextBytes(tokenBytes);
+        String token = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
         LocalDateTime expiryDate = LocalDateTime.now().plusHours(1);
 
         PasswordResetToken myToken = new PasswordResetToken(token, email, expiryDate);
