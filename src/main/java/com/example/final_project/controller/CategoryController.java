@@ -39,18 +39,23 @@ public class CategoryController {
             @Valid CategorySearchRequest request,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id,asc") String[] sort) {
-        
+            @RequestParam(defaultValue = "id,asc") String sort) {
+
         try {
-            Sort.Direction direction = sort[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
-            
-            // Update request with sort info
+            // sort param format: "field,direction" (e.g. "id,desc").
+            // This also works with the default value "id,asc".
+            String[] sortParts = sort != null ? sort.split(",") : new String[]{"id", "asc"};
+            String sortField = sortParts.length > 0 && !sortParts[0].isBlank() ? sortParts[0].trim() : "id";
+            String sortDir = sortParts.length > 1 && !sortParts[1].isBlank() ? sortParts[1].trim() : "asc";
+
+            Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+
+            // Update request with sort info so service/repository can reuse it if needed
             request.setPage(page);
             request.setSize(size);
-            request.setSort(sort[0]);
+            request.setSort(sortField);
             request.setDirection(direction.name()); // convert Sort.Direction -> String
-
 
             Page<Category> result = categoryService.findAll(request);
             return ResponseEntity.ok(result);

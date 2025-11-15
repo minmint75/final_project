@@ -47,7 +47,9 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public Page<Category> findAll(CategorySearchRequest request) {
-        Sort sort = Sort.by(request.getSortDirection(), request.getSort());
+        // Build Sort using direction + property; default values are handled in CategorySearchRequest
+        Sort.Direction direction = request.isAscending() ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, request.getSort());
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
         Specification<Category> spec = (root, query, criteriaBuilder) -> {
