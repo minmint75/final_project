@@ -1,10 +1,8 @@
 package com.example.final_project.entity;
 
+import com.example.final_project.entity.RoleName;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
+import lombok.AllArgsConstructor; // Thêm
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +10,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "admins")
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class Admin {
 
     @Id
@@ -29,5 +28,6 @@ public class Admin {
     private String avatar;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "role_name")
     private RoleName roleName = RoleName.ADMIN;
 }
