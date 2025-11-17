@@ -53,6 +53,7 @@ public class SecurityConfig {
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/student/**").hasRole("STUDENT")
                 .requestMatchers("/teacher/**").hasRole("TEACHER")
+                    .requestMatchers("/api/exams/**").hasRole("TEACHER")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
