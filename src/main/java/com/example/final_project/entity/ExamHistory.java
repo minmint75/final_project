@@ -23,42 +23,40 @@ public class ExamHistory {
     // ====== Thông tin bài thi ======
     @ManyToOne(optional = false)
     @JoinColumn(name = "exam_id")
-    private Exam exam;                      // Quan hệ tới bảng Exam, dùng exam.getId() khi cần
+    private Exam exam;
 
     @Column(name = "exam_title", nullable = false, length = 255)
-    private String examTitle;               // Tên bài thi
+    private String examTitle;
 
     @Column(name = "total_questions", nullable = false)
-    private Integer totalQuestions;         // Số lượng câu hỏi
+    private Integer totalQuestions;
 
     @Column(name = "difficulty", nullable = false)
-    private String difficulty;              // Độ khó (khó, dễ, trung bình)
+    private String difficulty;
 
     // ====== Thông tin học viên ======
-
     @ManyToOne(optional = false)
     @JoinColumn(name = "student_id")
-    private Student student;                // Quan hệ tới Student có sẵn
+    private Student student;
 
     @Column(name = "display_name", nullable = false, length = 255)
-    private String displayName;             // Tên hiển thị học viên
+    private String displayName;
 
     // ====== Kết quả làm bài ======
-
     @Column(name = "score", nullable = false)
-    private Double score;                   // Điểm đạt
+    private Double score;
 
     @Column(name = "correct_count", nullable = false)
-    private Integer correctCount;           // Số câu đúng
+    private Integer correctCount;
 
     @Column(name = "wrong_count", nullable = false)
-    private Integer wrongCount;             // Số câu sai
+    private Integer wrongCount = 0;
 
     @Column(name = "submitted_at", nullable = false)
-    private LocalDateTime submittedAt;      // Thời gian nộp bài
+    private LocalDateTime submittedAt;
 
     @Column(name = "attempt_number", nullable = false)
-    private Integer attemptNumber;          // Lượt thi thứ mấy của học viên với bài thi này
+    private Integer attemptNumber;
 
     @PrePersist
     public void prePersist() {
@@ -67,6 +65,9 @@ public class ExamHistory {
         }
         if (this.attemptNumber == null) {
             this.attemptNumber = 1;
+        }
+        if (this.wrongCount == null) {
+            this.wrongCount = 0;
         }
     }
 }

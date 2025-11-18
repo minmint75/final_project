@@ -13,4 +13,8 @@ public interface ExamHistoryService {
     List<ExamHistory> getHistoriesByExam(Long examId);
 
     List<ExamHistory> getHistoriesByExamAndStudent(Long examId, Long studentId);
+
+    Long getTotalAttempts(Long examId);
+
+    List<Object[]> getExamRanking();
 }
