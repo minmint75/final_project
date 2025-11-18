@@ -40,14 +40,17 @@ public class CategoryServiceImpl implements CategoryService {
 
     private String resolveRole(String email) {
         if (email == null || email.isBlank()) return null;
-        if (adminRepository.findByEmail(email).isPresent()) return "admin";
+        // Ưu tiên kiểm tra giáo viên trước để tránh trường hợp trùng email với admin
         if (teacherRepository.findByEmail(email).isPresent()) return "teacher";
+        if (adminRepository.findByEmail(email).isPresent()) return "admin";
         return null;
     }
 
     @Override
     public Page<Category> findAll(CategorySearchRequest request) {
-        Sort sort = Sort.by(request.getSortDirection(), request.getSort());
+        // Build Sort using direction + property; default values are handled in CategorySearchRequest
+        Sort.Direction direction = request.isAscending() ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort sort = Sort.by(direction, request.getSort());
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
         Specification<Category> spec = (root, query, criteriaBuilder) -> {

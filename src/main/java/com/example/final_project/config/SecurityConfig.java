@@ -131,6 +131,7 @@ public class SecurityConfig {
                         System.out.println("Admin logged in: " + email);
                     }
                 } catch (Exception e) {
+                    // Log the error but don't fail the login
                     System.err.println("Error updating last visit for " + role + ": " + e.getMessage());
                 }
             }

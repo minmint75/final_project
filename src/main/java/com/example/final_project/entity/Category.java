@@ -33,18 +33,16 @@ public class Category {
     @Transient
     private String createdByRole; // transient field for UI: "admin" | "teacher"
 
+   @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+   private List<Question> questions = new ArrayList<>();
+
+
+
 //    @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
-//    private List<Question> questions = new ArrayList<>();
-
-    // Per backlog: 1-n relationship with ExamOnline. Uncomment when ExamOnline entity is created.
-    /*
-    @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
-    private List<ExamOnline> examOnlines = new ArrayList<>();
-    */
-
-    // Per backlog: 1-n relationship with ExamOffline. Uncomment when ExamOffline entity is created.
-    /*
-    @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
-    private List<ExamOffline> examOfflines = new ArrayList<>();
-    */
+//    private List<ExamOnline> examOnlines = new ArrayList<>();
+//
+//
+//
+//    @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+//    private List<ExamOffline> examOfflines = new ArrayList<>();
 }

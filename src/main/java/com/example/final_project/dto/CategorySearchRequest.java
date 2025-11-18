@@ -13,7 +13,8 @@ public class CategorySearchRequest {
     private int page = 0;
     private int size = 20;
 
-    private String sort = "createdAt";
+    // Sort mặc định theo id để bản ghi mới (id lớn hơn) đứng trước khi direction = desc
+    private String sort = "id";
     private String direction = "desc";
 
     public boolean hasFilters() {

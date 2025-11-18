@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -33,7 +34,13 @@ public class TeacherServiceImpl implements TeacherService {
 
     @Override
     public Page<Teacher> searchTeachers(TeacherSearchRequest request) {
-        Pageable pageable = PageRequest.of(request.getPage(), request.getSize());
+        // Sort theo trường và hướng trong request (mặc định createdAt desc)
+        Sort sort = Sort.by(
+                request.isAscending() ? Sort.Direction.ASC : Sort.Direction.DESC,
+                request.getSort()
+        );
+
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
         return teacherRepository.findAll((Specification<Teacher>) (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (StringUtils.hasText(request.getUsername())) {
