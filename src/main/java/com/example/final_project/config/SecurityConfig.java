@@ -1,5 +1,10 @@
 package com.example.final_project.config;
 
+import com.example.final_project.repository.AdminRepository;
+import com.example.final_project.repository.StudentRepository;
+import com.example.final_project.repository.TeacherRepository;
+import com.example.final_project.service.StudentService;
+import com.example.final_project.service.TeacherService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -12,17 +17,17 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
-import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import com.example.final_project.service.StudentService;
-import com.example.final_project.service.TeacherService;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Arrays;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
@@ -30,10 +35,16 @@ public class SecurityConfig {
 
     private final TeacherService teacherService;
     private final StudentService studentService;
+    private final AdminRepository adminRepository;
+    private final TeacherRepository teacherRepository;
+    private final StudentRepository studentRepository;
 
-    public SecurityConfig(TeacherService teacherService, StudentService studentService) {
+    public SecurityConfig(TeacherService teacherService, StudentService studentService, AdminRepository adminRepository, TeacherRepository teacherRepository, StudentRepository studentRepository) {
         this.teacherService = teacherService;
         this.studentService = studentService;
+        this.adminRepository = adminRepository;
+        this.teacherRepository = teacherRepository;
+        this.studentRepository = studentRepository;
     }
 
     @Bean
@@ -51,16 +62,16 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(requestHandler)
+                        .ignoringRequestMatchers("/api/register", "/api/forgot-password", "/api/reset-password", "/api/validate-token")
                 )
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers(HttpMethod.POST, "/api/login", "/api/logout", "/api/register").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/test").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/login", "/api/logout").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/test", "/uploads/**").permitAll()
                         .requestMatchers("/api/register/**", "/api/forgot-password", "/api/reset-password", "/api/validate-token").permitAll()
-                        .requestMatchers("/uploads/**").permitAll()
 
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/teacher/**").hasRole("TEACHER")
-                        .requestMatchers("/api/student/**").hasRole("STUDENT")
+                        .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/api/teacher/**").hasAuthority("ROLE_TEACHER")
+                        .requestMatchers("/api/student/**").hasAuthority("ROLE_STUDENT")
 
                         .requestMatchers("/api/me", "/api/change-password").authenticated()
 
@@ -106,20 +117,36 @@ public class SecurityConfig {
             response.setStatus(200);
             response.setContentType("application/json");
 
-            // Get user details
             Object principal = authentication.getPrincipal();
             String email = "";
             String role = "";
+            final Map<String, String> userDetailsMap = new HashMap<>();
 
             if (principal instanceof UserDetails) {
                 UserDetails userDetails = (UserDetails) principal;
                 email = userDetails.getUsername();
 
-                // Lấy Role một cách an toàn và rõ ràng
                 role = userDetails.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
                         .findFirst()
                         .orElse("ROLE_UNKNOWN");
+
+                if (role.equals("ROLE_ADMIN")) {
+                    adminRepository.findByEmail(email).ifPresent(admin -> {
+                        userDetailsMap.put("id", String.valueOf(admin.getId()));
+                        userDetailsMap.put("name", admin.getUsername());
+                    });
+                } else if (role.equals("ROLE_TEACHER")) {
+                    teacherRepository.findByEmail(email).ifPresent(teacher -> {
+                        userDetailsMap.put("id", String.valueOf(teacher.getTeacherId()));
+                        userDetailsMap.put("name", teacher.getUsername());
+                    });
+                } else if (role.equals("ROLE_STUDENT")) {
+                    studentRepository.findByEmail(email).ifPresent(student -> {
+                        userDetailsMap.put("id", String.valueOf(student.getStudentId()));
+                        userDetailsMap.put("name", student.getUsername());
+                    });
+                }
 
                 // Update last visit
                 try {
@@ -127,17 +154,17 @@ public class SecurityConfig {
                         teacherService.updateLastVisit(email);
                     } else if (role.equals("ROLE_STUDENT")) {
                         studentService.updateLastVisit(email);
-                    } else if (role.equals("ROLE_ADMIN")) {
-                        System.out.println("Admin logged in: " + email);
                     }
                 } catch (Exception e) {
-                    // Log the error but don't fail the login
                     System.err.println("Error updating last visit for " + role + ": " + e.getMessage());
                 }
             }
 
+            String id = userDetailsMap.getOrDefault("id", "");
+            String name = userDetailsMap.getOrDefault("name", "");
+            // Bỏ tiền tố ROLE_ để client nhận được chuỗi "ADMIN"
             String roleName = role.replace("ROLE_", "");
-            String jsonResponse = String.format("{\"message\": \"Login successful\", \"role\": \"%s\", \"username\": \"%s\"}", roleName, email);
+            String jsonResponse = String.format("{\"message\": \"Login successful\", \"id\": \"%s\", \"email\": \"%s\", \"name\": \"%s\", \"role\": \"%s\"}", id, email, name, roleName);
 
             response.getWriter().write(jsonResponse);
             response.getWriter().flush();

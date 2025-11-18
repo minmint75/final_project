@@ -1,8 +1,7 @@
 package com.example.final_project.entity;
 
-import com.example.final_project.entity.RoleName;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor; // Thêm
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

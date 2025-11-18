@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -29,20 +30,28 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
-        // Try Admin by email
-        return adminRepository.findByEmail(email)
-                .map(admin -> buildUserDetails(admin.getEmail(), admin.getPassword(), admin.getRoleName()))
-                .orElseGet(() ->
-                        // Try Teacher by email
-                        teacherRepository.findByEmail(email)
-                                .map(teacher -> buildUserDetails(teacher.getEmail(), teacher.getPassword(), teacher.getRoleName()))
-                                .orElseGet(() ->
-                                        // Try Student by email
-                                        studentRepository.findByEmail(email)
-                                                .map(student -> buildUserDetails(student.getEmail(), student.getPassword(), student.getRoleName()))
-                                                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng: " + email))
-                                )
-                );
+        Optional<com.example.final_project.entity.Admin> adminOpt = adminRepository.findByEmail(email);
+        if (adminOpt.isPresent()) {
+            com.example.final_project.entity.Admin admin = adminOpt.get();
+            System.out.println("DEBUG: User " + email + " found as Admin with role: " + admin.getRoleName());
+            return buildUserDetails(admin.getEmail(), admin.getPassword(), admin.getRoleName());
+        }
+
+        Optional<com.example.final_project.entity.Teacher> teacherOpt = teacherRepository.findByEmail(email);
+        if (teacherOpt.isPresent()) {
+            com.example.final_project.entity.Teacher teacher = teacherOpt.get();
+            System.out.println("DEBUG: User " + email + " found as Teacher with role: " + teacher.getRoleName());
+            return buildUserDetails(teacher.getEmail(), teacher.getPassword(), teacher.getRoleName());
+        }
+
+        Optional<com.example.final_project.entity.Student> studentOpt = studentRepository.findByEmail(email);
+        if (studentOpt.isPresent()) {
+            com.example.final_project.entity.Student student = studentOpt.get();
+            System.out.println("DEBUG: User " + email + " found as Student with role: " + student.getRoleName());
+            return buildUserDetails(student.getEmail(), student.getPassword(), student.getRoleName());
+        }
+
+        throw new UsernameNotFoundException("Không tìm thấy người dùng: " + email);
     }
 
     private UserDetails buildUserDetails(String email, String hashedPassword, RoleName role) {
@@ -51,6 +60,8 @@ public class CustomUserDetailsService implements UserDetailsService {
         Set<GrantedAuthority> authorities = Collections.singleton(
                 new SimpleGrantedAuthority(roleWithPrefix)
         );
+
+        System.out.println("DEBUG: Building UserDetails for " + email + " with Authority: " + roleWithPrefix);
 
         return new org.springframework.security.core.userdetails.User(
                 email,
