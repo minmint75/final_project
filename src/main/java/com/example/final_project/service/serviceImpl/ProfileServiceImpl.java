@@ -70,7 +70,8 @@ public class ProfileServiceImpl implements ProfileService {
                 .or(() -> adminRepository.findByUsername(currentUsername));
         if (adminOpt.isPresent()) {
             Admin admin = adminOpt.get();
-            profile.put("username", admin.getUsername());
+            profile.put("id", admin.getId());
+            profile.put("name", admin.getUsername());
             profile.put("email", admin.getEmail());
             profile.put("avatar", admin.getAvatar());
             profile.put("role", "ADMIN");
@@ -81,7 +82,8 @@ public class ProfileServiceImpl implements ProfileService {
                 .or(() -> teacherRepository.findByUsername(currentUsername));
         if (teacherOpt.isPresent()) {
             Teacher teacher = teacherOpt.get();
-            profile.put("username", teacher.getUsername());
+            profile.put("id", teacher.getTeacherId());
+            profile.put("name", teacher.getUsername());
             profile.put("email", teacher.getEmail());
             profile.put("avatar", teacher.getAvatar());
             profile.put("role", "TEACHER");
@@ -92,7 +94,8 @@ public class ProfileServiceImpl implements ProfileService {
                 .or(() -> studentRepository.findByUsername(currentUsername));
         if (studentOpt.isPresent()) {
             Student student = studentOpt.get();
-            profile.put("username", student.getUsername());
+            profile.put("id", student.getStudentId());
+            profile.put("name", student.getUsername());
             profile.put("email", student.getEmail());
             profile.put("avatar", student.getAvatar());
             profile.put("role", "STUDENT");
