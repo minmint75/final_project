@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,13 +40,14 @@ public class ExamServiceImpl implements ExamService {
 
         // Thêm câu hỏi vào exam
         Exam finalExam = exam;
+        AtomicInteger index = new AtomicInteger(0);
         List<ExamQuestion> examQuestions = dto.getQuestionIds().stream().map(qid -> {
             Question question = questionRepository.findById(qid)
                     .orElseThrow(() -> new RuntimeException("Câu hỏi không tồn tại: " + qid));
             return ExamQuestion.builder()
                     .exam(finalExam)
                     .question(question)
-                    .orderIndex(0) // Có thể cải thiện sau
+                    .orderIndex(index.getAndIncrement())
                     .build();
         }).collect(Collectors.toList());
 
@@ -65,7 +67,6 @@ public class ExamServiceImpl implements ExamService {
             throw new RuntimeException("Bạn không có quyền chỉnh sửa bài thi này");
         }
 
-        // Kiểm tra đã có người làm chưa
         if (examRepository.hasSubmissions(examId)) {
             throw new RuntimeException("Không thể cập nhật bài thi đã có người làm");
         }
@@ -80,10 +81,15 @@ public class ExamServiceImpl implements ExamService {
         examQuestionRepository.deleteAll(exam.getExamQuestions());
 
         // Thêm câu hỏi mới
+        AtomicInteger index = new AtomicInteger(0);
         List<ExamQuestion> newQuestions = dto.getQuestionIds().stream().map(qid -> {
             Question q = questionRepository.findById(qid)
                     .orElseThrow(() -> new RuntimeException("Câu hỏi không tồn tại: " + qid));
-            return ExamQuestion.builder().exam(exam).question(q).orderIndex(0).build();
+            return ExamQuestion.builder()
+                    .exam(exam)
+                    .question(q)
+                    .orderIndex(index.getAndIncrement())
+                    .build();
         }).collect(Collectors.toList());
 
         examQuestionRepository.saveAll(newQuestions);
