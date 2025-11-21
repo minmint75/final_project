@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("categories")
+@RequestMapping("/api/categories")
 @Validated
 public class CategoryController {
 
@@ -69,7 +69,7 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.findAll());
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/get/{id}")
     public ResponseEntity<Category> getCategoryById(@PathVariable Long id) {
         return categoryService.findById(id)
                 .map(ResponseEntity::ok)
@@ -88,7 +88,7 @@ public class CategoryController {
         }
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/edit/{id}")
     public ResponseEntity<Category> updateCategory(
             @PathVariable Long id,
             @Valid @RequestBody Category category) {
@@ -107,7 +107,7 @@ public class CategoryController {
         }
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
         try {
             categoryService.deleteById(id);
