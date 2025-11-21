@@ -103,7 +103,6 @@ public class PasswordResetController {
     }
     @GetMapping("/test")
             public String testEndpoint() {
-                     // In ra để chúng ta biết nó đã được gọi
                      System.out.println(">>> /api/test endpoint was successfully hit! <<<");
                      return "Backend is reachable!";
                  }

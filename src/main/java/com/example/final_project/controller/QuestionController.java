@@ -17,24 +17,24 @@ public class QuestionController {
     @Autowired
     private QuestionService questionService;
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<?> create(@Valid @RequestBody QuestionCreateDto dto) {
         Question q = questionService.createQuestion(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(q);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/get/{id}")
     public ResponseEntity<?> get(@PathVariable Long id) {
         return ResponseEntity.ok(questionService.getQuestionById(id));
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<Page<Question>> list(@RequestParam(defaultValue = "0") int page) {
         Page<Question> p = questionService.getAllQuestions(page, 10);
         return ResponseEntity.ok(p);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/edit/{id}")
     public ResponseEntity<?> update(@PathVariable Long id,
                                     @Valid @RequestBody QuestionUpdateDto dto,
                                     @RequestHeader(value = "X-User", required = false) String actor) {
@@ -42,7 +42,7 @@ public class QuestionController {
         Question updated = questionService.updateQuestion(id, dto, actor);
         return ResponseEntity.ok(updated);
     }
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id,
                                     @RequestHeader(value = "X-User", required = false) String actor) {
         if (actor == null) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing X-User header");

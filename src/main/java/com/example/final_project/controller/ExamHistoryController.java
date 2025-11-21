@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("exam-history")
+@RequestMapping("/api/examHistory")
 @RequiredArgsConstructor
 public class ExamHistoryController {
 
