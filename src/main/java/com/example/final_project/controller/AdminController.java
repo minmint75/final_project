@@ -1,10 +1,12 @@
 package com.example.final_project.controller;
 
 import com.example.final_project.dto.ProfileUpdateRequest;
+import com.example.final_project.entity.Student;
 import com.example.final_project.entity.Teacher;
 import com.example.final_project.service.FileStorageService;
 import com.example.final_project.service.ProfileService;
 import com.example.final_project.service.TeacherService;
+import com.example.final_project.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,9 @@ public class AdminController {
     private TeacherService teacherService;
 
     @Autowired
+    private StudentService studentService;
+
+    @Autowired
     private ProfileService profileService;
 
     @Autowired
@@ -33,6 +38,18 @@ public class AdminController {
     public ResponseEntity<String> adminDashboard() {
         return ResponseEntity.ok("Welcome, Admin! (Đây là API response)");
     }
+
+    @GetMapping("/accounts/teachers")
+    public List<Teacher> getAllTeachers() {
+        return teacherService.findAll();
+    }
+
+
+    @GetMapping("/accounts/students")
+    public List<Student> getAllStudents() {
+        return studentService.findAll();
+    }
+
     @GetMapping("/teachers/pending")
     public ResponseEntity<List<Teacher>> getPendingTeachers() {
         return ResponseEntity.ok(teacherService.getPendingTeachers());
