@@ -33,12 +33,6 @@ public class AdminController {
     public ResponseEntity<String> adminDashboard() {
         return ResponseEntity.ok("Welcome, Admin! (Đây là API response)");
     }
-
-    @GetMapping("accounts/teachers")
-    public ResponseEntity<String> adminDashboard() {
-        return ResponseEntity.ok(teacherService.findAll());
-    }
-
     @GetMapping("/teachers/pending")
     public ResponseEntity<List<Teacher>> getPendingTeachers() {
         return ResponseEntity.ok(teacherService.getPendingTeachers());

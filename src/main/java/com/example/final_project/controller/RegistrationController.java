@@ -8,9 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping("/api")
 public class RegistrationController {
 
     @Autowired
@@ -39,17 +41,15 @@ public class RegistrationController {
                 return ResponseEntity.badRequest().body("Mật khẩu không được để trống");
             }
             if (request.getRole() == null) {
-                return ResponseEntity.badRequest().body("Vải trò không được để trống");
+                return ResponseEntity.badRequest().body("Vai trò không được để trống");
             }
-            
+
             String email = request.getEmail().trim();
             if (email != null) {
-                // Check Student
                 if (studentRepository.findByEmail(email).isPresent()) {
                     return ResponseEntity.badRequest().body("Email đã được sử dụng. Vui lòng dùng email khác.");
                 }
-                
-                // Check Teacher with status-specific messages
+
                 var existingTeacher = teacherRepository.findByEmail(email);
                 if (existingTeacher.isPresent()) {
                     var teacher = existingTeacher.get();
