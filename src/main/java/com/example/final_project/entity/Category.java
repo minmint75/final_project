@@ -33,6 +33,9 @@ public class Category {
     @Transient
     private String createdByRole; // transient field for UI: "admin" | "teacher"
 
+    @Transient
+    private String createdByName;
+
    @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
    private List<Question> questions = new ArrayList<>();
 

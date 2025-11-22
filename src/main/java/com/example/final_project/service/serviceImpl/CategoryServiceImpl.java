@@ -46,6 +46,19 @@ public class CategoryServiceImpl implements CategoryService {
         return null;
     }
 
+    private String resolveName(String email) {
+        if (email == null || email.isBlank()) return null;
+        var teacherOpt = teacherRepository.findByEmail(email);
+        if (teacherOpt.isPresent()) {
+            return teacherOpt.get().getUsername();
+        }
+        var adminOpt = adminRepository.findByEmail(email);
+        if (adminOpt.isPresent()) {
+            return adminOpt.get().getUsername();
+        }
+        return "unknown";
+    }
+
     @Override
     public Page<Category> findAll(CategorySearchRequest request) {
         // Build Sort using direction + property; default values are handled in CategorySearchRequest
@@ -62,27 +75,40 @@ public class CategoryServiceImpl implements CategoryService {
         };
 
         return categoryRepository.findAll(spec, pageable)
-                .map(c -> { c.setCreatedByRole(resolveRole(c.getCreatedBy())); return c; });
+                .map(c -> {
+                    c.setCreatedByRole(resolveRole(c.getCreatedBy()));
+                    c.setCreatedByName(resolveName(c.getCreatedBy()));
+                    return c;
+                });
     }
 
     @Override
     public List<Category> findAll() {
         List<Category> list = categoryRepository.findAll();
-        list.forEach(c -> c.setCreatedByRole(resolveRole(c.getCreatedBy())));
+        list.forEach(c -> {
+            c.setCreatedByRole(resolveRole(c.getCreatedBy()));
+            c.setCreatedByName(resolveName(c.getCreatedBy()));
+        });
         return list;
     }
 
     @Override
     public Optional<Category> findById(Long id) {
         Optional<Category> opt = categoryRepository.findById(id);
-        opt.ifPresent(c -> c.setCreatedByRole(resolveRole(c.getCreatedBy())));
+        opt.ifPresent(c -> {
+            c.setCreatedByRole(resolveRole(c.getCreatedBy()));
+            c.setCreatedByName(resolveName(c.getCreatedBy()));
+        });
         return opt;
     }
 
     @Override
     public Optional<Category> findByName(String name) {
         Optional<Category> opt = categoryRepository.findByName(name);
-        opt.ifPresent(c -> c.setCreatedByRole(resolveRole(c.getCreatedBy())));
+        opt.ifPresent(c -> {
+            c.setCreatedByRole(resolveRole(c.getCreatedBy()));
+            c.setCreatedByName(resolveName(c.getCreatedBy()));
+        });
         return opt;
     }
 
@@ -112,7 +138,11 @@ public class CategoryServiceImpl implements CategoryService {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             boolean isAdmin = authentication.getAuthorities().stream()
                     .anyMatch(a -> a.getAuthority().equals("ROLE_" + RoleName.ADMIN.name()));
-            if (!isAdmin && !existingCategory.getCreatedBy().equals(authentication.getName())) {
+            boolean isTeacher = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_" + RoleName.TEACHER.name()));
+            boolean isOwner = existingCategory.getCreatedBy().equals(authentication.getName());
+
+            if (!isAdmin && !isTeacher && !isOwner) {
                 throw new SecurityException("You are not allowed to update this category");
             }
             category.setCreatedBy(existingCategory.getCreatedBy()); // Preserve original creator
@@ -120,6 +150,7 @@ public class CategoryServiceImpl implements CategoryService {
 
         Category saved = categoryRepository.save(category);
         saved.setCreatedByRole(resolveRole(saved.getCreatedBy()));
+        saved.setCreatedByName(resolveName(saved.getCreatedBy()));
         return saved;
     }
 
@@ -132,7 +163,11 @@ public class CategoryServiceImpl implements CategoryService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_" + RoleName.ADMIN.name()));
-        if (!isAdmin && !category.getCreatedBy().equals(authentication.getName())) {
+        boolean isTeacher = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_" + RoleName.TEACHER.name()));
+        boolean isOwner = category.getCreatedBy().equals(authentication.getName());
+
+        if (!isAdmin && !isTeacher && !isOwner) {
             throw new SecurityException("You are not allowed to delete this category");
         }
 
