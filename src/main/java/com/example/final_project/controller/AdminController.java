@@ -50,6 +50,16 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/accounts/teachers/{id}/lock")
+    public ResponseEntity<?> lockTeacher(@PathVariable Long id) {
+        return updateTeacherStatusInternal(id, Teacher.TeacherStatus.LOCKED);
+    }
+
+    @PostMapping("/accounts/teachers/{id}/unlock")
+    public ResponseEntity<?> unlockTeacher(@PathVariable Long id) {
+        return updateTeacherStatusInternal(id, Teacher.TeacherStatus.APPROVED);
+    }
+
     @GetMapping("/accounts/students")
     public List<Student> getAllStudents() {
         return studentService.findAll();
@@ -76,6 +86,18 @@ public class AdminController {
     public ResponseEntity<String> rejectTeacher(@PathVariable Long teacherId) {
         teacherService.rejectTeacher(teacherId);
         return ResponseEntity.ok("Teacher rejected successfully.");
+    }
+
+    private ResponseEntity<?> updateTeacherStatusInternal(Long id, Teacher.TeacherStatus status) {
+        try {
+            Teacher teacher = teacherService.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Teacher not found"));
+            teacher.setStatus(status);
+            teacherService.save(teacher);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
     @PostMapping("/profile/upload-avatar")
