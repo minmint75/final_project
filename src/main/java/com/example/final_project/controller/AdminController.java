@@ -71,6 +71,16 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/accounts/students/{id}/lock")
+    public ResponseEntity<?> lockStudent(@PathVariable Long id) {
+        return updateStudentStatusInternal(id, Student.StudentStatus.LOCKED);
+    }
+
+    @PostMapping("/accounts/students/{id}/unlock")
+    public ResponseEntity<?> unlockStudent(@PathVariable Long id) {
+        return updateStudentStatusInternal(id, Student.StudentStatus.ACTIVE);
+    }
+
     @GetMapping("/teachers/pending")
     public ResponseEntity<List<Teacher>> getPendingTeachers() {
         return ResponseEntity.ok(teacherService.getPendingTeachers());
@@ -86,6 +96,18 @@ public class AdminController {
     public ResponseEntity<String> rejectTeacher(@PathVariable Long teacherId) {
         teacherService.rejectTeacher(teacherId);
         return ResponseEntity.ok("Teacher rejected successfully.");
+    }
+
+    private ResponseEntity<?> updateStudentStatusInternal(Long id, Student.StudentStatus status) {
+        try {
+            Student student = studentService.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Student not found"));
+            student.setStatus(status);
+            studentService.save(student);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
     private ResponseEntity<?> updateTeacherStatusInternal(Long id, Teacher.TeacherStatus status) {
