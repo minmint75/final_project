@@ -53,7 +53,7 @@ public class ExamController {
         return ResponseEntity.ok(exam);
     }
 
-    @DeleteMapping("/delete/{examId")
+    @DeleteMapping("/delete/{examId}")
     public ResponseEntity<Exam> deleteExam(@PathVariable Long examId, Long teacherId, Principal principal) {
         try {
             examService.deleteExamById(examId, teacherId);

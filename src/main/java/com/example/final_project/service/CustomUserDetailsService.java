@@ -40,6 +40,8 @@ public class CustomUserDetailsService implements UserDetailsService {
         Optional<com.example.final_project.entity.Teacher> teacherOpt = teacherRepository.findByEmail(email);
         if (teacherOpt.isPresent()) {
             com.example.final_project.entity.Teacher teacher = teacherOpt.get();
+            teacher.setLastVisit(java.time.LocalDateTime.now());
+            teacherRepository.save(teacher);
             System.out.println("DEBUG: User " + email + " found as Teacher. Assigning TEACHER role.");
             return buildUserDetails(teacher.getEmail(), teacher.getPassword(), RoleName.TEACHER);
         }
@@ -47,6 +49,8 @@ public class CustomUserDetailsService implements UserDetailsService {
         Optional<com.example.final_project.entity.Student> studentOpt = studentRepository.findByEmail(email);
         if (studentOpt.isPresent()) {
             com.example.final_project.entity.Student student = studentOpt.get();
+            student.setLastVisit(java.time.LocalDateTime.now());
+            studentRepository.save(student);
             System.out.println("DEBUG: User " + email + " found as Student. Assigning STUDENT role.");
             return buildUserDetails(student.getEmail(), student.getPassword(), RoleName.STUDENT);
         }
