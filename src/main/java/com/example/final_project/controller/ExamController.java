@@ -27,7 +27,7 @@ public class ExamController {
         return ResponseEntity.ok(exam);
     }
 
-    @PutMapping("/{examId}")
+    @PutMapping("/update/{examId}")
     public ResponseEntity<Exam> updateExam(
             @PathVariable Long examId,
             @Valid @RequestBody ExamRequestDto dto,

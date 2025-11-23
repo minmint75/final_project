@@ -39,13 +39,10 @@ public class Category {
    @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
    private List<Question> questions = new ArrayList<>();
 
+    @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+    private List<Exam> exam = new ArrayList<>();
 
 
 //    @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
 //    private List<ExamOnline> examOnlines = new ArrayList<>();
-//
-//
-//
-//    @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
-//    private List<ExamOffline> examOfflines = new ArrayList<>();
 }
