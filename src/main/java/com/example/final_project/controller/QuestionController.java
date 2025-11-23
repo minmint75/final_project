@@ -49,4 +49,14 @@ public class QuestionController {
         questionService.deleteQuestion(id, actor);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/question-types")
+    public ResponseEntity<com.example.final_project.entity.QuestionType[]> getQuestionTypes() {
+        return ResponseEntity.ok(com.example.final_project.entity.QuestionType.values());
+    }
+
+    @GetMapping("/difficulties")
+    public ResponseEntity<java.util.List<String>> getDifficulties() {
+        return ResponseEntity.ok(java.util.Arrays.asList("Easy", "Medium", "Hard"));
+    }
 }

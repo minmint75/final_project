@@ -49,9 +49,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/api/auth/login", "/api/register/**", "/api/forgot-password", "/api/reset-password", "/api/validate-token").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/test", "/uploads/**").permitAll()
+
+                        .requestMatchers("/api/questions/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_TEACHER")
+                        .requestMatchers("/api/exams/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_TEACHER")
                         .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/teacher/**").hasAuthority("ROLE_TEACHER")
                         .requestMatchers("/api/student/**").hasAuthority("ROLE_STUDENT")
+
                         .requestMatchers("/api/me", "/api/change-password").authenticated()
                         .anyRequest().authenticated()
                 )

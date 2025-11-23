@@ -25,7 +25,7 @@ public class Question {
     private QuestionType type;
 
     @Column(nullable = false)
-    private String difficulty; // "Khó", "Trung bình", "Dễ"
+    private String difficulty;
 
     @ManyToOne
     @JoinColumn(name = "category_id")
