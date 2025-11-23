@@ -10,4 +10,5 @@ public interface ExamService {
     Exam updateExam(Long examId, ExamRequestDto dto, Long teacherId);
     List<Exam> getExamsByTeacher(Long teacherId);
     Exam getExamById(Long examId, Long teacherId);
+    void deleteExamById(Long examId, Long teacherId);
 }

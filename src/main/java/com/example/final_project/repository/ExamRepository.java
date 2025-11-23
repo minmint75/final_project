@@ -13,4 +13,6 @@ public interface ExamRepository extends JpaRepository<Exam, Long> {
 
     @Query("SELECT count(h) > 0 FROM ExamHistory h WHERE h.exam.examId = :examId")
     boolean hasSubmissions(Long examId);
+
+    void deleteByExamId(Long examId);
 }
