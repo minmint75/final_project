@@ -5,9 +5,11 @@ import com.example.final_project.entity.Exam;
 import com.example.final_project.service.ExamService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
 import java.util.List;
@@ -15,7 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/exams")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('TEACHER')")
+@PreAuthorize("hasRole('TEACHER'), hasRole('ADMIN')")
 public class ExamController {
 
     private final ExamService examService;
@@ -49,5 +51,19 @@ public class ExamController {
         Long teacherId = Long.parseLong(principal.getName());
         Exam exam = examService.getExamById(examId, teacherId);
         return ResponseEntity.ok(exam);
+    }
+
+    @DeleteMapping("/delete/{examId")
+    public ResponseEntity<Exam> deleteExam(@PathVariable Long examId, Long teacherId, Principal principal) {
+        try {
+            examService.deleteExamById(examId, teacherId);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalStateException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+        } catch (SecurityException e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage(), e);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error deleting exam", e);
+        }
     }
 }

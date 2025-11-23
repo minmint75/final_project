@@ -112,4 +112,8 @@ public class ExamServiceImpl implements ExamService {
         }
         return exam;
     }
+
+    @Override
+    public void deleteExamById(Long examId, Long teacherId) {
+    }
 }
