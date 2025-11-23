@@ -33,22 +33,22 @@ public class CustomUserDetailsService implements UserDetailsService {
         Optional<com.example.final_project.entity.Admin> adminOpt = adminRepository.findByEmail(email);
         if (adminOpt.isPresent()) {
             com.example.final_project.entity.Admin admin = adminOpt.get();
-            System.out.println("DEBUG: User " + email + " found as Admin with role: " + admin.getRoleName());
-            return buildUserDetails(admin.getEmail(), admin.getPassword(), admin.getRoleName());
+            System.out.println("DEBUG: User " + email + " found as Admin. Assigning ADMIN role.");
+            return buildUserDetails(admin.getEmail(), admin.getPassword(), RoleName.ADMIN);
         }
 
         Optional<com.example.final_project.entity.Teacher> teacherOpt = teacherRepository.findByEmail(email);
         if (teacherOpt.isPresent()) {
             com.example.final_project.entity.Teacher teacher = teacherOpt.get();
-            System.out.println("DEBUG: User " + email + " found as Teacher with role: " + teacher.getRoleName());
-            return buildUserDetails(teacher.getEmail(), teacher.getPassword(), teacher.getRoleName());
+            System.out.println("DEBUG: User " + email + " found as Teacher. Assigning TEACHER role.");
+            return buildUserDetails(teacher.getEmail(), teacher.getPassword(), RoleName.TEACHER);
         }
 
         Optional<com.example.final_project.entity.Student> studentOpt = studentRepository.findByEmail(email);
         if (studentOpt.isPresent()) {
             com.example.final_project.entity.Student student = studentOpt.get();
-            System.out.println("DEBUG: User " + email + " found as Student with role: " + student.getRoleName());
-            return buildUserDetails(student.getEmail(), student.getPassword(), student.getRoleName());
+            System.out.println("DEBUG: User " + email + " found as Student. Assigning STUDENT role.");
+            return buildUserDetails(student.getEmail(), student.getPassword(), RoleName.STUDENT);
         }
 
         throw new UsernameNotFoundException("Không tìm thấy người dùng: " + email);
