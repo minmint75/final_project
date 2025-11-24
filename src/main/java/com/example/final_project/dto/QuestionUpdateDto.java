@@ -1,29 +1,39 @@
 package com.example.final_project.dto;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
-import lombok.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class QuestionUpdateDto {
-    @NotBlank
+    // Không cần ID câu hỏi vì nó được lấy từ @PathVariable trong Controller
+
+    @NotBlank(message = "Tiêu đề câu hỏi không được để trống")
     private String title;
 
-    @NotBlank
-    private String type;
+    @NotBlank(message = "Loại câu hỏi là bắt buộc (Ví dụ: SINGLE, MULTIPLE, TRUE_FALSE)")
+    private String type; // Tên của Enum QuestionType
 
-    @NotBlank
+    @NotBlank(message = "Độ khó là bắt buộc")
     private String difficulty;
 
-    @NotNull
+    @NotNull(message = "Danh mục là bắt buộc")
+    @Min(value = 1, message = "ID danh mục không hợp lệ")
     private Long categoryId;
 
-    @NotEmpty
-    @Valid
-    private List<AnswerDto> answers;
+    // Không cần trường createdBy/createdByUserId vì chúng không thay đổi khi UPDATE
+
+    @Valid // Kích hoạt validation trong AnswerDto
+    @Size(min = 1, message = "Câu hỏi phải có ít nhất một đáp án")
+    @NotNull(message = "Danh sách đáp án không được trống")
+    private List<com.example.final_project.dto.AnswerDto> answers;
 }

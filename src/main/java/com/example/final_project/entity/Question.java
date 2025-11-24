@@ -9,8 +9,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "questions")
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Question {
@@ -22,20 +21,25 @@ public class Question {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private QuestionType type;
+    private com.example.final_project.entity.QuestionType type; // Giả định QuestionType là một Enum
 
     @Column(nullable = false)
-    private String difficulty;
+    private String difficulty; // "Khó", "Trung bình", "Dễ"
 
     @ManyToOne
     @JoinColumn(name = "category_id")
-    private Category category;
+    private com.example.final_project.entity.Category category;
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Answer> answers = new ArrayList<>();
+    private List<com.example.final_project.entity.Answer> answers = new ArrayList<>();
 
     @Column(name = "created_by", nullable = false)
-    private String createdBy; // có thể lưu username hoặc id dưới dạng string
+    private String createdBy; // Lưu username hoặc email của người tạo (cho mục đích hiển thị)
+
+    // START CẢI TIẾN: Thêm ID người tạo để kiểm tra quyền
+    @Column(name = "created_by_user_id", nullable = false)
+    private Long createdByUserId;
+    // END CẢI TIẾN
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

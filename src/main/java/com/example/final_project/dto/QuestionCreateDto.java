@@ -1,32 +1,40 @@
 package com.example.final_project.dto;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
-import lombok.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class QuestionCreateDto {
-    @NotBlank
+
+    @NotBlank(message = "Tiêu đề câu hỏi không được để trống")
     private String title;
 
-    @NotBlank
-    private String type; // SINGLE, MULTIPLE, TRUE_FALSE
+    @NotBlank(message = "Loại câu hỏi là bắt buộc (Ví dụ: SINGLE, MULTIPLE, TRUE_FALSE)")
+    private String type; // Tên của Enum QuestionType
 
-    @NotBlank
-    private String difficulty; // "Khó", "Trung bình", "Dễ"
+    @NotBlank(message = "Độ khó là bắt buộc")
+    private String difficulty;
 
-    @NotNull
+    @NotNull(message = "Danh mục là bắt buộc")
+    @Min(value = 1, message = "ID danh mục không hợp lệ")
     private Long categoryId;
 
-    @NotBlank
-    private String createdBy;
+    @NotNull(message = "Thông tin người tạo là bắt buộc")
+    @NotBlank(message = "Tên người tạo không được để trống")
+    private String createdBy; // Username/Email của người tạo
 
-    @NotEmpty
-    @Valid
-    private List<AnswerDto> answers;
+    @Valid // Kích hoạt validation trong AnswerDto
+    @Size(min = 1, message = "Câu hỏi phải có ít nhất một đáp án")
+    @NotNull(message = "Danh sách đáp án không được trống")
+    private List<com.example.final_project.dto.AnswerDto> answers;
 }
