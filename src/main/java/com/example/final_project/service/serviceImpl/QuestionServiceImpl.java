@@ -7,6 +7,8 @@ import com.example.final_project.repository.*;
 import com.example.final_project.service.QuestionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
@@ -103,8 +105,13 @@ public class QuestionServiceImpl implements QuestionService {
             throw new IllegalStateException("Không thể cập nhật câu hỏi đã được chọn vào bài thi.");
         }
 
-        // Optional: only allow owner to edit
-        if (!q.getCreatedBy().equals(actorUsername)) {
+        // Check if user is admin or owner
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        // Allow if user is admin or is the owner
+        if (!isAdmin && !q.getCreatedBy().equals(actorUsername)) {
             throw new SecurityException("Không có quyền cập nhật câu hỏi này.");
         }
 
@@ -225,11 +232,11 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public void deleteQuestionAsAdmin(Long id) {
         Question q = questionRepo.findById(id).orElseThrow(() -> new NoSuchElementException("Câu hỏi không tồn tại"));
-        
+
         if (examQuestionRepo.existsByQuestionId(id)) {
             throw new IllegalStateException("Không thể xóa câu hỏi đã được chọn vào bài thi.");
         }
-        
+
         // Admin can delete any question - no ownership check
         questionRepo.delete(q);
     }
