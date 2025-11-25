@@ -26,7 +26,9 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public QuestionResponseDto createQuestion(QuestionCreateDto dto) {
         QuestionType type = QuestionType.valueOf(dto.getType());
-        validateAnswersByType(type, dto.getAnswers());
+        if (type != QuestionType.TRUE_FALSE) {
+            validateAnswersByType(type, dto.getAnswers());
+        }
 
         Category category = categoryRepo.findById(dto.getCategoryId())
                 .orElseThrow(() -> new NoSuchElementException("Danh mục không tồn tại"));
@@ -38,14 +40,31 @@ public class QuestionServiceImpl implements QuestionService {
         q.setCategory(category);
         q.setCreatedBy(dto.getCreatedBy());
 
-        List<Answer> answers = dto.getAnswers().stream().map(aDto -> {
-            Answer a = new Answer();
-            a.setText(aDto.getText());
-            a.setCorrect(Boolean.TRUE.equals(aDto.getCorrect()));
-            a.setQuestion(q);
-            return a;
-        }).collect(Collectors.toList());
-        q.setAnswers(answers);
+        if (type == QuestionType.TRUE_FALSE) {
+            q.setCorrectAnswer(dto.getCorrectAnswer());
+            List<Answer> answers = new ArrayList<>();
+            Answer trueAnswer = new Answer();
+            trueAnswer.setText("True");
+            trueAnswer.setCorrect("True".equalsIgnoreCase(dto.getCorrectAnswer()));
+            trueAnswer.setQuestion(q);
+            answers.add(trueAnswer);
+
+            Answer falseAnswer = new Answer();
+            falseAnswer.setText("False");
+            falseAnswer.setCorrect("False".equalsIgnoreCase(dto.getCorrectAnswer()));
+            falseAnswer.setQuestion(q);
+            answers.add(falseAnswer);
+            q.setAnswers(answers);
+        } else {
+            List<Answer> answers = dto.getAnswers().stream().map(aDto -> {
+                Answer a = new Answer();
+                a.setText(aDto.getText());
+                a.setCorrect(Boolean.TRUE.equals(aDto.getCorrect()));
+                a.setQuestion(q);
+                return a;
+            }).collect(Collectors.toList());
+            q.setAnswers(answers);
+        }
 
         Question savedQuestion = questionRepo.save(q);
         return entityDtoMapper.toQuestionResponseDto(savedQuestion);
@@ -82,7 +101,9 @@ public class QuestionServiceImpl implements QuestionService {
         }
 
         QuestionType type = QuestionType.valueOf(dto.getType());
-        validateAnswersByType(type, dto.getAnswers());
+        if (type != QuestionType.TRUE_FALSE) {
+            validateAnswersByType(type, dto.getAnswers());
+        }
 
         Category category = categoryRepo.findById(dto.getCategoryId())
                 .orElseThrow(() -> new NoSuchElementException("Danh mục không tồn tại"));
@@ -94,14 +115,30 @@ public class QuestionServiceImpl implements QuestionService {
 
         // Replace answers
         q.getAnswers().clear();
-        List<Answer> newAnswers = dto.getAnswers().stream().map(aDto -> {
-            Answer a = new Answer();
-            a.setText(aDto.getText());
-            a.setCorrect(Boolean.TRUE.equals(aDto.getCorrect()));
-            a.setQuestion(q);
-            return a;
-        }).collect(Collectors.toList());
-        q.getAnswers().addAll(newAnswers);
+        if (type == QuestionType.TRUE_FALSE) {
+            q.setCorrectAnswer(dto.getCorrectAnswer());
+            Answer trueAnswer = new Answer();
+            trueAnswer.setText("True");
+            trueAnswer.setCorrect("True".equalsIgnoreCase(dto.getCorrectAnswer()));
+            trueAnswer.setQuestion(q);
+            q.getAnswers().add(trueAnswer);
+
+            Answer falseAnswer = new Answer();
+            falseAnswer.setText("False");
+            falseAnswer.setCorrect("False".equalsIgnoreCase(dto.getCorrectAnswer()));
+            falseAnswer.setQuestion(q);
+            q.getAnswers().add(falseAnswer);
+        } else {
+            q.setCorrectAnswer(null); // Reset correct answer if not TRUE_FALSE
+            List<Answer> newAnswers = dto.getAnswers().stream().map(aDto -> {
+                Answer a = new Answer();
+                a.setText(aDto.getText());
+                a.setCorrect(Boolean.TRUE.equals(aDto.getCorrect()));
+                a.setQuestion(q);
+                return a;
+            }).collect(Collectors.toList());
+            q.getAnswers().addAll(newAnswers);
+        }
 
         Question updatedQuestion = questionRepo.save(q);
         return entityDtoMapper.toQuestionResponseDto(updatedQuestion);
@@ -130,7 +167,6 @@ public class QuestionServiceImpl implements QuestionService {
 
         switch (type) {
             case SINGLE:
-            case TRUE_FALSE:
                 if (correctCount != 1) throw new IllegalArgumentException("Loại " + type + " phải có đúng 1 đáp án đúng.");
                 break;
             case MULTIPLE:

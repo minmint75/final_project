@@ -26,4 +26,6 @@ public class QuestionUpdateDto {
     @NotEmpty
     @Valid
     private List<AnswerDto> answers;
+
+    private String correctAnswer;
 }
