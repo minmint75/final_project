@@ -34,6 +34,9 @@ public class Question {
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Answer> answers = new ArrayList<>();
 
+    @Column(nullable = true)
+    private String correctAnswer;
+
     @Column(name = "created_by", nullable = false)
     private String createdBy; // có thể lưu username hoặc id dưới dạng string
 

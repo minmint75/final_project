@@ -29,4 +29,6 @@ public class QuestionCreateDto {
     @NotEmpty
     @Valid
     private List<AnswerDto> answers;
+
+    private String correctAnswer;
 }
