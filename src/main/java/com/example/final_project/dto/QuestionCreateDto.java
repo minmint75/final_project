@@ -23,7 +23,6 @@ public class QuestionCreateDto {
     @NotNull
     private Long categoryId;
 
-    @NotBlank
     private String createdBy;
 
     @NotEmpty

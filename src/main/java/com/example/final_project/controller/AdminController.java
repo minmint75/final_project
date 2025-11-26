@@ -159,6 +159,12 @@ public class AdminController {
         return ResponseEntity.ok(questions);
     }
 
+    @GetMapping("/questions/{id}")
+    public ResponseEntity<QuestionResponseDto> getQuestion(@PathVariable Long id) {
+        // Admin có quyền xem chi tiết bất kỳ câu hỏi nào
+        return ResponseEntity.ok(questionService.getQuestionById(id));
+    }
+
     @PostMapping("/questions")
     public ResponseEntity<QuestionResponseDto> createQuestion(@Valid @RequestBody QuestionCreateDto dto) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
