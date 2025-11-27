@@ -1,6 +1,9 @@
 package com.example.final_project.service;
 
 import com.example.final_project.entity.RoleName;
+import com.example.final_project.entity.Teacher;
+import com.example.final_project.entity.Student;
+import com.example.final_project.exception.AccountLockedException;
 import com.example.final_project.repository.AdminRepository;
 import com.example.final_project.repository.StudentRepository;
 import com.example.final_project.repository.TeacherRepository;
@@ -40,6 +43,13 @@ public class CustomUserDetailsService implements UserDetailsService {
         Optional<com.example.final_project.entity.Teacher> teacherOpt = teacherRepository.findByEmail(email);
         if (teacherOpt.isPresent()) {
             com.example.final_project.entity.Teacher teacher = teacherOpt.get();
+            
+            // Check if teacher account is locked
+            if (teacher.getStatus() == Teacher.TeacherStatus.LOCKED) {
+                System.out.println("DEBUG: Teacher " + email + " is LOCKED. Denying access.");
+                throw new AccountLockedException("Tài khoản giáo viên đã bị khóa. Vui lòng liên hệ quản trị viên.");
+            }
+            
             teacher.setLastVisit(java.time.LocalDateTime.now());
             teacherRepository.save(teacher);
             System.out.println("DEBUG: User " + email + " found as Teacher. Assigning TEACHER role.");
@@ -49,6 +59,13 @@ public class CustomUserDetailsService implements UserDetailsService {
         Optional<com.example.final_project.entity.Student> studentOpt = studentRepository.findByEmail(email);
         if (studentOpt.isPresent()) {
             com.example.final_project.entity.Student student = studentOpt.get();
+            
+            // Check if student account is locked
+            if (student.getStatus() == Student.StudentStatus.LOCKED) {
+                System.out.println("DEBUG: Student " + email + " is LOCKED. Denying access.");
+                throw new AccountLockedException("Tài khoản học viên đã bị khóa. Vui lòng liên hệ quản trị viên.");
+            }
+            
             student.setLastVisit(java.time.LocalDateTime.now());
             studentRepository.save(student);
             System.out.println("DEBUG: User " + email + " found as Student. Assigning STUDENT role.");

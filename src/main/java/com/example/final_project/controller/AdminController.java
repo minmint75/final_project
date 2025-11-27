@@ -8,6 +8,7 @@ import com.example.final_project.service.ProfileService;
 import com.example.final_project.service.TeacherService;
 import com.example.final_project.service.StudentService;
 import com.example.final_project.service.QuestionService;
+import com.example.final_project.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -40,6 +41,9 @@ public class AdminController {
 
     @Autowired
     private QuestionService questionService;
+
+    @Autowired
+    private EmailService emailService;
 
     @GetMapping("")
     public ResponseEntity<String> adminDashboard() {
@@ -109,8 +113,28 @@ public class AdminController {
         try {
             Student student = studentService.findById(id)
                     .orElseThrow(() -> new RuntimeException("Student not found"));
+            
+            Student.StudentStatus oldStatus = student.getStatus();
             student.setStatus(status);
             studentService.save(student);
+            
+            // Gửi email thông báo khi thay đổi trạng thái
+            if (oldStatus != status) {
+                if (status == Student.StudentStatus.LOCKED) {
+                    emailService.sendAccountLockedEmail(
+                        student.getEmail(), 
+                        "học viên", 
+                        student.getUsername() != null ? student.getUsername() : student.getEmail()
+                    );
+                } else if (status == Student.StudentStatus.ACTIVE && oldStatus == Student.StudentStatus.LOCKED) {
+                    emailService.sendAccountUnlockedEmail(
+                        student.getEmail(), 
+                        "học viên", 
+                        student.getUsername() != null ? student.getUsername() : student.getEmail()
+                    );
+                }
+            }
+            
             return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -121,8 +145,28 @@ public class AdminController {
         try {
             Teacher teacher = teacherService.findById(id)
                     .orElseThrow(() -> new RuntimeException("Teacher not found"));
+            
+            Teacher.TeacherStatus oldStatus = teacher.getStatus();
             teacher.setStatus(status);
             teacherService.save(teacher);
+            
+            // Gửi email thông báo khi thay đổi trạng thái
+            if (oldStatus != status) {
+                if (status == Teacher.TeacherStatus.LOCKED) {
+                    emailService.sendAccountLockedEmail(
+                        teacher.getEmail(), 
+                        "giáo viên", 
+                        teacher.getUsername() != null ? teacher.getUsername() : teacher.getEmail()
+                    );
+                } else if (status == Teacher.TeacherStatus.APPROVED && oldStatus == Teacher.TeacherStatus.LOCKED) {
+                    emailService.sendAccountUnlockedEmail(
+                        teacher.getEmail(), 
+                        "giáo viên", 
+                        teacher.getUsername() != null ? teacher.getUsername() : teacher.getEmail()
+                    );
+                }
+            }
+            
             return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());

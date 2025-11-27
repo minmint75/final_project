@@ -108,4 +108,85 @@ public class EmailServiceImpl implements EmailService {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public void sendAccountLockedEmail(String toEmail, String accountType, String userName) {
+        if (!emailEnabled) return;
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(toEmail);
+            message.setSubject("Tài khoản " + accountType + " đã bị khóa");
+            message.setText(buildAccountLockedEmail(accountType, userName));
+            mailSender.send(message);
+            System.out.println("Account locked email sent to: " + toEmail);
+        } catch (Exception e) {
+            System.err.println("Failed to send account locked email to " + toEmail + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void sendAccountUnlockedEmail(String toEmail, String accountType, String userName) {
+        if (!emailEnabled) return;
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(toEmail);
+            message.setSubject("Tài khoản " + accountType + " đã được mở khóa");
+            message.setText(buildAccountUnlockedEmail(accountType, userName));
+            mailSender.send(message);
+            System.out.println("Account unlocked email sent to: " + toEmail);
+        } catch (Exception e) {
+            System.err.println("Failed to send account unlocked email to " + toEmail + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private String buildAccountLockedEmail(String accountType, String userName) {
+        return "Kính gửi " + userName + ",\n\n" +
+               "Chúng tôi xin thông báo rằng tài khoản " + accountType + " của bạn đã bị khóa bởi quản trị viên.\n\n" +
+               "Lý do khóa tài khoản:\n" +
+               "- Vi phạm chính sách sử dụng hệ thống\n" +
+               "- Hoạt động đáng ngờ được phát hiện\n" +
+               "- Yêu cầu từ quản trị viên\n\n" +
+               "Hậu quả của việc bị khóa:\n" +
+               "- Bạn không thể đăng nhập vào hệ thống\n" +
+               "- Không thể truy cập các tính năng của " + accountType + "\n" +
+               "- Dữ liệu của bạn vẫn được bảo toàn\n\n" +
+               "Để mở khóa tài khoản, vui lòng:\n" +
+               "1. Liên hệ quản trị viên qua email: admin@quiz.edu.vn\n" +
+               "2. Gọi hotline: 1900-1234\n" +
+               "3. Hoặc đến trực tiếp văn phòng quản trị\n\n" +
+               "Thời gian làm việc: 8:00 - 17:00 (Thứ 2 - Thứ 6)\n\n" +
+               "Trân trọng,\n" +
+               "Ban quản trị hệ thống Quiz\n\n" +
+               "---\n" +
+               "Đây là email tự động, vui lòng không trả lời email này.";
+    }
+
+    private String buildAccountUnlockedEmail(String accountType, String userName) {
+        return "Kính gửi " + userName + ",\n\n" +
+               "Chúng tôi xin thông báo rằng tài khoản " + accountType + " của bạn đã được mở khóa.\n\n" +
+               "Thông tin mở khóa:\n" +
+               "- Thời gian mở khóa: " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + "\n" +
+               "- Người thực hiện: Quản trị viên hệ thống\n" +
+               "- Trạng thái: Đã kích hoạt\n\n" +
+               "Bạn có thể:\n" +
+               "✅ Đăng nhập vào hệ thống bình thường\n" +
+               "✅ Sử dụng đầy đủ tính năng của " + accountType + "\n" +
+               "✅ Truy cập dữ liệu và tài nguyên của mình\n\n" +
+               "Lưu ý:\n" +
+               "- Vui lòng tuân thủ chính sách sử dụng hệ thống\n" +
+               "- Bảo mật thông tin đăng nhập của bạn\n" +
+               "- Liên hệ ngay nếu có hoạt động bất thường\n\n" +
+               "Nếu có bất kỳ câu hỏi nào, vui lòng liên hệ:\n" +
+               "📧 Email: admin@quiz.edu.vn\n" +
+               "📞 Hotline: 1900-1234\n\n" +
+               "Cảm ơn bạn đã sử dụng hệ thống Quiz!\n\n" +
+               "Trân trọng,\n" +
+               "Ban quản trị hệ thống Quiz\n\n" +
+               "---\n" +
+               "Đây là email tự động, vui lòng không trả lời email này.";
+    }
 }
