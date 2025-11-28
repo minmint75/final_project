@@ -37,7 +37,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         if (adminOpt.isPresent()) {
             com.example.final_project.entity.Admin admin = adminOpt.get();
             System.out.println("DEBUG: User " + email + " found as Admin. Assigning ADMIN role.");
-            return buildUserDetails(admin.getId().toString(), admin.getEmail(), admin.getPassword(), RoleName.ADMIN);
+            return buildUserDetails(admin.getId(), admin.getEmail(), admin.getPassword(), RoleName.ADMIN);
         }
 
         Optional<com.example.final_project.entity.Teacher> teacherOpt = teacherRepository.findByEmail(email);
@@ -53,7 +53,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             teacher.setLastVisit(java.time.LocalDateTime.now());
             teacherRepository.save(teacher);
             System.out.println("DEBUG: User " + email + " found as Teacher. Assigning TEACHER role.");
-            return buildUserDetails(teacher.getTeacherId().toString(), teacher.getEmail(), teacher.getPassword(), RoleName.TEACHER);
+            return buildUserDetails(teacher.getTeacherId(), teacher.getEmail(), teacher.getPassword(), RoleName.TEACHER);
         }
 
         Optional<com.example.final_project.entity.Student> studentOpt = studentRepository.findByEmail(email);
@@ -69,23 +69,24 @@ public class CustomUserDetailsService implements UserDetailsService {
             student.setLastVisit(java.time.LocalDateTime.now());
             studentRepository.save(student);
             System.out.println("DEBUG: User " + email + " found as Student. Assigning STUDENT role.");
-            return buildUserDetails(student.getStudentId().toString(), student.getEmail(), student.getPassword(), RoleName.STUDENT);
+            return buildUserDetails(student.getStudentId(), student.getEmail(), student.getPassword(), RoleName.STUDENT);
         }
 
         throw new UsernameNotFoundException("Không tìm thấy người dùng: " + email);
     }
 
-    private UserDetails buildUserDetails(String userId, String email, String hashedPassword, RoleName role) {
+    private UserDetails buildUserDetails(Long id, String email, String hashedPassword, RoleName role) {
         String roleWithPrefix = "ROLE_" + role.name();
 
         Set<GrantedAuthority> authorities = Collections.singleton(
                 new SimpleGrantedAuthority(roleWithPrefix)
         );
 
-        System.out.println("DEBUG: Building UserDetails for " + email + " with Authority: " + roleWithPrefix);
+        System.out.println("DEBUG: Building CustomUserDetails for " + email + " with ID: " + id + " and Authority: " + roleWithPrefix);
 
-        return new org.springframework.security.core.userdetails.User(
-                userId,
+        return new CustomUserDetails(
+                id,
+                email,
                 hashedPassword,
                 authorities
         );

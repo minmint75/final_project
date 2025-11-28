@@ -2,6 +2,7 @@ package com.example.final_project.controller;
 
 import com.example.final_project.dto.ExamRequestDto;
 import com.example.final_project.dto.ExamResponseDto;
+import com.example.final_project.service.CustomUserDetails;
 import com.example.final_project.service.ExamService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,7 @@ public class ExamController {
 
     @PostMapping
     public ResponseEntity<ExamResponseDto> createExam(@Valid @RequestBody ExamRequestDto dto, Principal principal) {
-        Long userId = getUserIdFromPrincipal(principal);
+        Long userId = getAuthenticatedUserId(principal);
         ExamResponseDto exam = examService.createExam(dto, userId);
         return ResponseEntity.ok(exam);
     }
@@ -38,7 +39,7 @@ public class ExamController {
             @PathVariable Long examId,
             @Valid @RequestBody ExamRequestDto dto,
             Principal principal) {
-        Long userId = getUserIdFromPrincipal(principal);
+        Long userId = getAuthenticatedUserId(principal);
         ExamResponseDto exam = examService.updateExam(examId, dto, userId);
         return ResponseEntity.ok(exam);
     }
@@ -50,11 +51,12 @@ public class ExamController {
     }
 
     @GetMapping("/my")
-    public ResponseEntity<List<ExamResponseDto>> getMyExams(Authentication authentication) {
+    public ResponseEntity<List<ExamResponseDto>> getMyExams(Principal principal) {
+        Authentication authentication = (Authentication) principal;
         if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
             return ResponseEntity.ok(examService.getAllExams(Pageable.unpaged()).getContent());
         } else {
-            Long teacherId = getUserIdFromPrincipal(authentication);
+            Long teacherId = getAuthenticatedUserId(principal);
             List<ExamResponseDto> exams = examService.getExamsByTeacher(teacherId);
             return ResponseEntity.ok(exams);
         }
@@ -62,14 +64,14 @@ public class ExamController {
 
     @GetMapping("/{examId}")
     public ResponseEntity<ExamResponseDto> getExam(@PathVariable Long examId, Principal principal) {
-        Long userId = getUserIdFromPrincipal(principal);
+        Long userId = getAuthenticatedUserId(principal);
         ExamResponseDto exam = examService.getExamById(examId, userId);
         return ResponseEntity.ok(exam);
     }
 
     @DeleteMapping("/delete/{examId}")
     public ResponseEntity<Void> deleteExam(@PathVariable Long examId, Principal principal) {
-        Long userId = getUserIdFromPrincipal(principal);
+        Long userId = getAuthenticatedUserId(principal);
         try {
             examService.deleteExamById(examId, userId);
             return ResponseEntity.noContent().build();
@@ -79,14 +81,16 @@ public class ExamController {
         }
     }
 
-    private Long getUserIdFromPrincipal(Principal principal) {
-        if (principal == null || principal.getName() == null) {
+    private Long getAuthenticatedUserId(Principal principal) {
+        if (principal == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Không xác thực được người dùng");
         }
-        try {
-            return Long.parseLong(principal.getName());
-        } catch (NumberFormatException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "ID người dùng không hợp lệ");
+        Authentication authentication = (Authentication) principal;
+        Object principalObject = authentication.getPrincipal();
+        if (principalObject instanceof CustomUserDetails) {
+            return ((CustomUserDetails) principalObject).getId();
+        } else {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Loại principal người dùng không hợp lệ. Không phải CustomUserDetails.");
         }
     }
 }
