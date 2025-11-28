@@ -5,6 +5,8 @@ import com.example.final_project.dto.ExamResponseDto;
 import com.example.final_project.service.ExamService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,6 +39,12 @@ public class ExamController {
         Long teacherId = getTeacherIdFromPrincipal(principal);
         ExamResponseDto exam = examService.updateExam(examId, dto, teacherId);
         return ResponseEntity.ok(exam);
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<ExamResponseDto>> getAllExams(Pageable pageable) {
+        Page<ExamResponseDto> exams = examService.getAllExams(pageable);
+        return ResponseEntity.ok(exams);
     }
 
     @GetMapping("/my")

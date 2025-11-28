@@ -7,6 +7,8 @@ import com.example.final_project.mapper.EntityDtoMapper;
 import com.example.final_project.repository.*;
 import com.example.final_project.service.ExamService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -117,6 +119,12 @@ public class ExamServiceImpl implements ExamService {
         return examRepository.findByTeacherIdOrderByCreatedAtDesc(teacherId).stream()
                 .map(entityDtoMapper::toExamResponseDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<ExamResponseDto> getAllExams(Pageable pageable) {
+        Page<Exam> examPage = examRepository.findAll(pageable);
+        return examPage.map(entityDtoMapper::toExamResponseDto);
     }
 
     @Override
