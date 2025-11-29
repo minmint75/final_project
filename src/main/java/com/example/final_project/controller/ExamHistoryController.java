@@ -21,7 +21,7 @@ public class ExamHistoryController {
     }
 
     // Lấy lịch sử theo bài thi
-    @GetMapping("/exam/{examId}")
+    @GetMapping("/get/{examId}")
     public List<ExamHistory> getByExam(@PathVariable Long examId) {
         return examHistoryService.getHistoriesByExam(examId);
     }
