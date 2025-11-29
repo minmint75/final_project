@@ -2,21 +2,26 @@ package com.example.final_project.service.serviceImpl;
 
 import com.example.final_project.dto.ExamRequestDto;
 import com.example.final_project.dto.ExamResponseDto;
+import com.example.final_project.dto.ExamSearchRequest;
 import com.example.final_project.entity.*;
 import com.example.final_project.mapper.EntityDtoMapper;
 import com.example.final_project.repository.*;
 import com.example.final_project.service.ExamService;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -171,5 +176,24 @@ public class ExamServiceImpl implements ExamService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không thể xóa bài thi đã có người làm");
         }
         examRepository.deleteById(examId);
+    }
+
+    @Override
+    public Page<ExamResponseDto> searchExams(ExamSearchRequest searchRequest, Pageable pageable) {
+        Specification<Exam> spec = (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (searchRequest.getCategoryId() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("category").get("categoryId"), searchRequest.getCategoryId()));
+            }
+
+            if (StringUtils.hasText(searchRequest.getTitle())) {
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), "%" + searchRequest.getTitle().toLowerCase() + "%"));
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+
+        return examRepository.findAll(spec, pageable).map(entityDtoMapper::toExamResponseDto);
     }
 }
