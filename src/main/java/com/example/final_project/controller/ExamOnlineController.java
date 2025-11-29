@@ -20,64 +20,67 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/online-exams")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('TEACHER')")
+@PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')") // Allow both TEACHER and ADMIN
 public class ExamOnlineController {
 
     private final ExamOnlineService examOnlineService;
 
     @PostMapping("/create")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')") // Allow both to create
     public ResponseEntity<ExamOnlineResponse> createExamOnline(@Valid @RequestBody ExamOnlineRequest request, Principal principal) {
-        Long teacherId = getAuthenticatedUserId(principal);
-        ExamOnlineResponse response = examOnlineService.createExamOnline(request, teacherId);
+        ExamOnlineResponse response = examOnlineService.createExamOnline(request, (Authentication) principal);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/my")
     public ResponseEntity<List<ExamOnlineResponse>> getMyOnlineExams(Principal principal) {
-        Long teacherId = getAuthenticatedUserId(principal);
-        List<ExamOnlineResponse> exams = examOnlineService.getMyOnlineExams(teacherId);
+        Authentication authentication = (Authentication) principal;
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        List<ExamOnlineResponse> exams;
+        if (isAdmin) {
+            exams = examOnlineService.getAllOnlineExams();
+        } else {
+            Long teacherId = getAuthenticatedUserId(principal);
+            exams = examOnlineService.getMyOnlineExams(teacherId);
+        }
         return ResponseEntity.ok(exams);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ExamOnlineResponse> getExamOnlineById(@PathVariable Long id, Principal principal) {
-        Long teacherId = getAuthenticatedUserId(principal);
-        ExamOnlineResponse exam = examOnlineService.getExamOnlineById(id, teacherId);
+        ExamOnlineResponse exam = examOnlineService.getExamOnlineById(id, (Authentication) principal);
         return ResponseEntity.ok(exam);
     }
 
     @PutMapping("/{id}/update")
     public ResponseEntity<ExamOnlineResponse> updateExamOnline(@PathVariable Long id, @Valid @RequestBody ExamOnlineRequest request, Principal principal) {
-        Long teacherId = getAuthenticatedUserId(principal);
-        ExamOnlineResponse response = examOnlineService.updateExamOnline(id, request, teacherId);
+        ExamOnlineResponse response = examOnlineService.updateExamOnline(id, request, (Authentication) principal);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{id}/start")
     public ResponseEntity<ExamOnlineResponse> startExamOnline(@PathVariable Long id, Principal principal) {
-        Long teacherId = getAuthenticatedUserId(principal);
-        ExamOnlineResponse response = examOnlineService.startExamOnline(id, teacherId);
+        ExamOnlineResponse response = examOnlineService.startExamOnline(id, (Authentication) principal);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{id}/finish")
     public ResponseEntity<ExamOnlineResponse> finishExamOnline(@PathVariable Long id, Principal principal) {
-        Long teacherId = getAuthenticatedUserId(principal);
-        ExamOnlineResponse response = examOnlineService.finishExamOnline(id, teacherId);
+        ExamOnlineResponse response = examOnlineService.finishExamOnline(id, (Authentication) principal);
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}/delete")
     public ResponseEntity<Void> deleteExamOnline(@PathVariable Long id, Principal principal) {
-        Long teacherId = getAuthenticatedUserId(principal);
-        examOnlineService.deleteExamOnlineById(id, teacherId);
+        examOnlineService.deleteExamOnlineById(id, (Authentication) principal);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/results")
     public ResponseEntity<ExamOnlineResultsDto> getExamOnlineResults(@PathVariable Long id, Principal principal) {
-        Long teacherId = getAuthenticatedUserId(principal);
-        ExamOnlineResultsDto results = examOnlineService.getExamOnlineResults(id, teacherId);
+        ExamOnlineResultsDto results = examOnlineService.getExamOnlineResults(id, (Authentication) principal);
         return ResponseEntity.ok(results);
     }
 
