@@ -98,4 +98,37 @@ public class EntityDtoMapper {
                 .examQuestions(examQuestionDtos)
                 .build();
     }
+
+    public AnswerOptionDto toAnswerOptionDto(Answer answer) {
+        if (answer == null) {
+            return null;
+        }
+        return new AnswerOptionDto(answer.getId(), answer.getText());
+    }
+
+    public QuestionTakeDto toQuestionTakeDto(Question question) {
+        if (question == null) {
+            return null;
+        }
+        List<AnswerOptionDto> answerOptions = question.getAnswers().stream()
+                .map(this::toAnswerOptionDto)
+                .collect(Collectors.toList());
+        return new QuestionTakeDto(question.getId(), question.getTitle(), answerOptions);
+    }
+
+    public ExamResultResponseDto toExamResultResponseDto(ExamHistory examHistory) {
+        if (examHistory == null) {
+            return null;
+        }
+        return ExamResultResponseDto.builder()
+                .examHistoryId(examHistory.getId())
+                .examId(examHistory.getExam().getExamId())
+                .examTitle(examHistory.getExamTitle())
+                .score(examHistory.getScore())
+                .correctCount(examHistory.getCorrectCount())
+                .wrongCount(examHistory.getWrongCount())
+                .totalQuestions(examHistory.getTotalQuestions())
+                .submittedAt(examHistory.getSubmittedAt())
+                .build();
+    }
 }
