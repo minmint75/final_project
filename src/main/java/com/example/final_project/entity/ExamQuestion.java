@@ -1,5 +1,6 @@
 package com.example.final_project.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,6 +19,7 @@ public class ExamQuestion {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "exam_id", nullable = false)
+    @JsonIgnore
     private Exam exam;
 
     @ManyToOne(fetch = FetchType.LAZY)
