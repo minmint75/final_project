@@ -45,7 +45,7 @@ public class ExamOnline {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "teacher_id", nullable = false)
-    private Teacher teacher; // Giáo viên tạo bài thi
+    private Teacher teacher;
 
     @ManyToMany
     @JoinTable(

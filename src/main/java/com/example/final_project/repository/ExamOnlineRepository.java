@@ -16,6 +16,6 @@ public interface ExamOnlineRepository extends JpaRepository<ExamOnline, Long> {
      * @param teacherId The ID of the teacher.
      * @return An Optional containing the ExamOnline if found, or empty otherwise.
      */
-    Optional<ExamOnline> findByNameAndTeacherId(String name, Long teacherId);
+    Optional<ExamOnline> findByNameAndTeacher_TeacherId(String name, Long teacherId);
     Optional<ExamOnline> findByAccessCode(String accessCode);
 }
