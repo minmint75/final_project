@@ -7,6 +7,7 @@ import com.example.final_project.entity.Teacher;
 import com.example.final_project.repository.AdminRepository;
 import com.example.final_project.repository.StudentRepository;
 import com.example.final_project.repository.TeacherRepository;
+import com.example.final_project.service.FileStorageService;
 import com.example.final_project.service.ProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -29,6 +30,9 @@ public class ProfileServiceImpl implements ProfileService {
     @Autowired
     private StudentRepository studentRepository;
 
+    @Autowired
+    private FileStorageService fileStorageService;
+
     @Override
     @Transactional
     public void updateProfile(String currentUsername, ProfileUpdateRequest request) {
@@ -36,7 +40,15 @@ public class ProfileServiceImpl implements ProfileService {
                 .or(() -> adminRepository.findByUsername(currentUsername));
         if (adminOpt.isPresent()) {
             Admin admin = adminOpt.get();
+            String oldAvatar = admin.getAvatar();
             updateUsernameAndAvatar(admin, request.getUsername(), request.getAvatar());
+            
+            // Delete old avatar file if it's being replaced
+            if (request.getAvatar() != null && oldAvatar != null && !oldAvatar.equals(request.getAvatar())) {
+                String filename = oldAvatar.replace("/uploads/", "");
+                fileStorageService.deleteFile(filename);
+            }
+            
             adminRepository.save(admin);
             return;
         }
@@ -45,7 +57,15 @@ public class ProfileServiceImpl implements ProfileService {
                 .or(() -> teacherRepository.findByUsername(currentUsername));
         if (teacherOpt.isPresent()) {
             Teacher teacher = teacherOpt.get();
+            String oldAvatar = teacher.getAvatar();
             updateUsernameAndAvatar(teacher, request.getUsername(), request.getAvatar());
+            
+            // Delete old avatar file if it's being replaced
+            if (request.getAvatar() != null && oldAvatar != null && !oldAvatar.equals(request.getAvatar())) {
+                String filename = oldAvatar.replace("/uploads/", "");
+                fileStorageService.deleteFile(filename);
+            }
+            
             teacherRepository.save(teacher);
             return;
         }
@@ -54,7 +74,15 @@ public class ProfileServiceImpl implements ProfileService {
                 .or(() -> studentRepository.findByUsername(currentUsername));
         if (studentOpt.isPresent()) {
             Student student = studentOpt.get();
+            String oldAvatar = student.getAvatar();
             updateUsernameAndAvatar(student, request.getUsername(), request.getAvatar());
+            
+            // Delete old avatar file if it's being replaced
+            if (request.getAvatar() != null && oldAvatar != null && !oldAvatar.equals(request.getAvatar())) {
+                String filename = oldAvatar.replace("/uploads/", "");
+                fileStorageService.deleteFile(filename);
+            }
+            
             studentRepository.save(student);
             return;
         }
@@ -111,6 +139,11 @@ public class ProfileServiceImpl implements ProfileService {
                 .or(() -> adminRepository.findByUsername(currentUsername));
         if (adminOpt.isPresent()) {
             Admin admin = adminOpt.get();
+            String oldAvatar = admin.getAvatar();
+            if (oldAvatar != null && !oldAvatar.trim().isEmpty()) {
+                String filename = oldAvatar.replace("/uploads/", "");
+                fileStorageService.deleteFile(filename);
+            }
             admin.setAvatar(null);
             adminRepository.save(admin);
             return;
@@ -120,6 +153,11 @@ public class ProfileServiceImpl implements ProfileService {
                 .or(() -> teacherRepository.findByUsername(currentUsername));
         if (teacherOpt.isPresent()) {
             Teacher teacher = teacherOpt.get();
+            String oldAvatar = teacher.getAvatar();
+            if (oldAvatar != null && !oldAvatar.trim().isEmpty()) {
+                String filename = oldAvatar.replace("/uploads/", "");
+                fileStorageService.deleteFile(filename);
+            }
             teacher.setAvatar(null);
             teacherRepository.save(teacher);
             return;
@@ -129,6 +167,11 @@ public class ProfileServiceImpl implements ProfileService {
                 .or(() -> studentRepository.findByUsername(currentUsername));
         if (studentOpt.isPresent()) {
             Student student = studentOpt.get();
+            String oldAvatar = student.getAvatar();
+            if (oldAvatar != null && !oldAvatar.trim().isEmpty()) {
+                String filename = oldAvatar.replace("/uploads/", "");
+                fileStorageService.deleteFile(filename);
+            }
             student.setAvatar(null);
             studentRepository.save(student);
             return;
