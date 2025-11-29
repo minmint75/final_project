@@ -37,12 +37,14 @@ public class ExamServiceImpl implements ExamService {
     @Transactional
     public ExamResponseDto createExam(ExamRequestDto dto, Long userId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin không thể tạo bài thi trực tiếp. Một bài thi phải được tạo bởi một giáo viên.");
+        boolean isAdmin = authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+
+        Teacher teacher = null;
+        if (!isAdmin) {
+            teacher = teacherRepository.findById(userId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy giáo viên với ID: " + userId));
         }
 
-        Teacher teacher = teacherRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy giáo viên với ID: " + userId));
         Category category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy danh mục với ID: " + dto.getCategoryId()));
 
@@ -86,8 +88,10 @@ public class ExamServiceImpl implements ExamService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
 
-        if (!isAdmin && !exam.getTeacher().getTeacherId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không có quyền chỉnh sửa bài thi này");
+        if (!isAdmin) {
+            if (exam.getTeacher() == null || !exam.getTeacher().getTeacherId().equals(userId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không có quyền chỉnh sửa bài thi này");
+            }
         }
 
         if (examRepository.hasSubmissions(examId)) {
@@ -148,8 +152,10 @@ public class ExamServiceImpl implements ExamService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
 
-        if (!isAdmin && !exam.getTeacher().getTeacherId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không có quyền xem bài thi này");
+        if (!isAdmin) {
+            if (exam.getTeacher() == null || !exam.getTeacher().getTeacherId().equals(userId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không có quyền xem bài thi này");
+            }
         }
         return entityDtoMapper.toExamResponseDto(exam);
     }
@@ -162,8 +168,10 @@ public class ExamServiceImpl implements ExamService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
 
-        if (!isAdmin && !exam.getTeacher().getTeacherId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không có quyền xóa bài thi này");
+        if (!isAdmin) {
+            if (exam.getTeacher() == null || !exam.getTeacher().getTeacherId().equals(userId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không có quyền xóa bài thi này");
+            }
         }
         if (examRepository.hasSubmissions(examId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không thể xóa bài thi đã có người làm");
