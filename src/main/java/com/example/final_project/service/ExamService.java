@@ -2,6 +2,7 @@ package com.example.final_project.service;
 
 import com.example.final_project.dto.ExamRequestDto;
 import com.example.final_project.dto.ExamResponseDto;
+import com.example.final_project.dto.ExamSearchRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -14,4 +15,5 @@ public interface ExamService {
     Page<ExamResponseDto> getAllExams(Pageable pageable);
     ExamResponseDto getExamById(Long examId, Long teacherId);
     void deleteExamById(Long examId, Long teacherId);
+    Page<ExamResponseDto> searchExams(ExamSearchRequest searchRequest, Pageable pageable);
 }
