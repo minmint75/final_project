@@ -44,7 +44,7 @@ public class ExamOnline {
     private ExamStatus status; // Trạng thái bài thi (PENDING, IN_PROGRESS, FINISHED)
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "teacher_id", nullable = false)
+    @JoinColumn(name = "teacher_id", nullable = true) // Allow null for admin-created exams
     private Teacher teacher;
 
     @ManyToMany
