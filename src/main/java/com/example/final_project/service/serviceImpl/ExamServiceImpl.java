@@ -108,24 +108,18 @@ public class ExamServiceImpl implements ExamService {
         exam.setEndTime(dto.getEndTime());
         exam.setCategory(category);
 
-        // Xóa câu hỏi cũ
-        examQuestionRepository.deleteAll(exam.getExamQuestions());
         exam.getExamQuestions().clear();
-
-        // Thêm câu hỏi mới
         AtomicInteger index = new AtomicInteger(0);
-        List<ExamQuestion> newQuestions = dto.getQuestionIds().stream().map(qid -> {
-            Question q = questionRepository.findById(qid)
+        dto.getQuestionIds().forEach(qid -> {
+            Question question = questionRepository.findById(qid)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Câu hỏi không tồn tại: " + qid));
-            return ExamQuestion.builder()
+            ExamQuestion examQuestion = ExamQuestion.builder()
                     .exam(exam)
-                    .question(q)
+                    .question(question)
                     .orderIndex(index.getAndIncrement())
                     .build();
-        }).collect(Collectors.toList());
-
-        examQuestionRepository.saveAll(newQuestions);
-        exam.setExamQuestions(newQuestions);
+            exam.getExamQuestions().add(examQuestion);
+        });
 
         Exam savedExam = examRepository.save(exam);
         return entityDtoMapper.toExamResponseDto(savedExam);
