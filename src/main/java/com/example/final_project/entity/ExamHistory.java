@@ -21,9 +21,13 @@ public class ExamHistory {
     private Long id;
 
     // ====== Thông tin bài thi ======
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = true) // Made optional to support ExamOnline
     @JoinColumn(name = "exam_id")
     private Exam exam;
+
+    @ManyToOne(optional = true) // Added for ExamOnline
+    @JoinColumn(name = "exam_online_id")
+    private ExamOnline examOnline;
 
     @Column(name = "exam_title", nullable = false, length = 255)
     private String examTitle;
