@@ -11,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class QuestionUpdateDto {
-    @NotBlank
+
     private String title;
 
     @NotBlank
