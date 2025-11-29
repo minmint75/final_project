@@ -4,6 +4,7 @@ import com.example.final_project.entity.ExamOnline;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -18,4 +19,5 @@ public interface ExamOnlineRepository extends JpaRepository<ExamOnline, Long> {
      */
     Optional<ExamOnline> findByNameAndTeacher_TeacherId(String name, Long teacherId);
     Optional<ExamOnline> findByAccessCode(String accessCode);
+    List<ExamOnline> findByTeacher_TeacherIdOrderByCreatedAtDesc(Long teacherId);
 }
