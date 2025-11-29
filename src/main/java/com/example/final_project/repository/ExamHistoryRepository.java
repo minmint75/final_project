@@ -29,4 +29,8 @@ public interface ExamHistoryRepository extends JpaRepository<ExamHistory, Long> 
         ORDER BY COUNT(eh) DESC
     """)
     List<Object[]> getExamRanking();
+
+    // Methods for ExamOnline
+    List<ExamHistory> findByExamOnline_IdOrderByScoreDesc(Long examOnlineId);
+    boolean existsByExamOnlineId(Long examOnlineId);
 }
