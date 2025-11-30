@@ -17,4 +17,6 @@ public interface ExamHistoryService {
     Long getTotalAttempts(Long examId);
 
     List<Object[]> getExamRanking();
+
+    ExamHistory getById(Long id);
 }

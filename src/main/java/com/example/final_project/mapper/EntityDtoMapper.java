@@ -131,4 +131,34 @@ public class EntityDtoMapper {
                 .submittedAt(examHistory.getSubmittedAt())
                 .build();
     }
+
+    public ExamHistoryResponseDto toExamHistoryResponseDto(ExamHistory examHistory) {
+        if (examHistory == null) {
+            return null;
+        }
+
+        ExamHistoryResponseDto dto = new ExamHistoryResponseDto();
+        dto.setId(examHistory.getId());
+
+        if (examHistory.getExam() != null) {
+            dto.setExamId(examHistory.getExam().getExamId());
+        }
+
+        dto.setExamTitle(examHistory.getExamTitle());
+        dto.setTotalQuestions(examHistory.getTotalQuestions());
+        dto.setDifficulty(examHistory.getDifficulty());
+
+        if (examHistory.getStudent() != null) {
+            dto.setStudentId(examHistory.getStudent().getStudentId());
+        }
+
+        dto.setDisplayName(examHistory.getDisplayName());
+        dto.setScore(examHistory.getScore());
+        dto.setCorrectCount(examHistory.getCorrectCount());
+        dto.setWrongCount(examHistory.getWrongCount());
+        dto.setSubmittedAt(examHistory.getSubmittedAt());
+        dto.setAttemptNumber(examHistory.getAttemptNumber());
+
+        return dto;
+    }
 }

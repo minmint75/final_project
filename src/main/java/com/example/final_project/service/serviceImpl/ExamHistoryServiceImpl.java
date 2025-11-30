@@ -68,4 +68,10 @@ public class ExamHistoryServiceImpl implements ExamHistoryService {
     public List<Object[]> getExamRanking() {
         return examHistoryRepository.getExamRanking();
     }
+
+    @Override
+    public ExamHistory getById(Long id) {
+        return examHistoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch sử bài thi với ID: " + id));
+    }
 }
