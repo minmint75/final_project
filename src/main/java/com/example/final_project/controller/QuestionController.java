@@ -5,6 +5,7 @@ import com.example.final_project.service.QuestionService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.*;
 import java.security.Principal;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +28,23 @@ public class QuestionController {
         dto.setCreatedBy(currentUser);
         QuestionResponseDto q = questionService.createQuestion(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(q);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<QuestionResponseDto>> searchQuestions(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String q, // Keyword (nếu Frontend gửi)
+            @RequestParam(required = false) String difficulty, // Bộ lọc độ khó
+            @RequestParam(required = false) String type, // Bộ lọc loại
+            @RequestParam(required = false) Long categoryId, // Bộ lọc danh mục
+            @RequestParam(required = false) String createdBy, // Lọc theo người tạo (nếu cần)
+            Principal principal // Lấy thông tin người dùng
+    ) {
+        Page<QuestionResponseDto> p = questionService.searchAndFilterQuestions(
+                q, difficulty, type, categoryId, createdBy, PageRequest.of(page, size)
+        );
+        return ResponseEntity.ok(p);
     }
 
     @GetMapping("/get/{id}")

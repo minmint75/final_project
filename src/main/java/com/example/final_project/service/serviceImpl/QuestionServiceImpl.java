@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.springframework.data.jpa.domain.Specification;
+import com.example.final_project.entity.Difficulty;
 
 @Service
 @Transactional
@@ -70,6 +72,24 @@ public class QuestionServiceImpl implements QuestionService {
 
         Question savedQuestion = questionRepo.save(q);
         return entityDtoMapper.toQuestionResponseDto(savedQuestion);
+    }
+
+    @Override
+    public Page<QuestionResponseDto> searchAndFilterQuestions(
+            String keyword,
+            String difficulty,
+            String type,
+            Long categoryId,
+            String createdBy,
+            Pageable pageable) {
+        return QuestionRepository.searchAndFilter(
+                keyword,
+                difficulty,
+                type,
+                categoryId,
+                createdBy,
+                pageable
+        );
     }
 
     // GET SINGLE
@@ -151,7 +171,7 @@ public class QuestionServiceImpl implements QuestionService {
                 a.setCorrect(Boolean.TRUE.equals(aDto.getCorrect()));
                 a.setQuestion(q);
                 return a;
-            }).collect(Collectors.toList());
+            }).toList();
             q.getAnswers().addAll(newAnswers);
         }
 
@@ -256,5 +276,62 @@ public class QuestionServiceImpl implements QuestionService {
                 if (correctCount < 2) throw new IllegalArgumentException("Loại MULTIPLE phải có ít nhất 2 đáp án đúng.");
                 break;
         }
+    }
+    private Specification<Question> buildSpecification(
+            String keyword,
+            String difficulty,
+            String type,
+            Long categoryId)
+    {
+        Specification<Question> spec = null; // Bắt đầu với điều kiện trống
+
+        // Lọc theo Từ khóa (Title)
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            String likeKeyword = "%" + keyword.trim().toLowerCase() + "%";
+            spec = ((root, query, cb) -> cb.like(cb.lower(root.get("title")), likeKeyword));
+        }
+
+        // Lọc theo Độ khó
+        if (difficulty != null && !difficulty.trim().isEmpty()) {
+            try {
+                Difficulty diffEnum = Difficulty.valueOf(difficulty.toUpperCase());
+                Specification<Question> diffSpec = (root, query, cb) ->
+                        cb.equal(root.get("difficulty"), diffEnum);
+
+                if (spec == null) {
+                    spec = diffSpec;
+                } else {
+                    spec = spec.and(diffSpec);
+                }
+            } catch (IllegalArgumentException e) {}
+        }
+        // Lọc theo Loại câu hỏi (Type)
+        if (type != null && !type.trim().isEmpty()) {
+            try {
+                QuestionType typeEnum = QuestionType.valueOf(type.toUpperCase());
+
+                Specification<Question> typeSpec = (root, query, cb) ->
+                        cb.equal(root.get("type"), typeEnum);
+
+                if (spec == null) {
+                    spec = typeSpec;
+                } else {
+                    spec = spec.and(typeSpec);
+                }
+            } catch (IllegalArgumentException e) {}
+        }
+
+        // Lọc theo Danh mục (Category ID)
+        if (categoryId != null) {
+            Specification<Question> categorySpec = (root, query, cb) ->
+                    cb.equal(root.get("category").get("id"), categoryId);
+
+            if (spec == null) {
+                spec = categorySpec;
+            } else {
+                spec = spec.and(categorySpec);
+            }
+        }
+        return spec;
     }
 }

@@ -15,7 +15,7 @@ public class QuestionCreateDto {
     private String title;
 
     @NotBlank
-    private String type; // SINGLE, MULTIPLE, TRUE_FALSE
+    private String type; // TRUE_FALSE
 
     @NotBlank
     private String difficulty; // "Khó", "Trung bình", "Dễ"
