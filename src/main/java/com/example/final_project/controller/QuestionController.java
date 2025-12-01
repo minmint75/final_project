@@ -9,6 +9,8 @@ import org.springframework.http.*;
 import java.security.Principal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/questions")
@@ -82,5 +84,43 @@ public class QuestionController {
     @GetMapping("/difficulties")
     public ResponseEntity<java.util.List<String>> getDifficulties() {
         return ResponseEntity.ok(java.util.Arrays.asList("Easy", "Medium", "Hard"));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<org.springframework.data.domain.Page<QuestionResponseDto>> searchQuestions(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String difficulty,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String createdBy,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt,desc") String sort) {
+        
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+            page, size, 
+            org.springframework.data.domain.Sort.by(
+                org.springframework.data.domain.Sort.Direction.fromString(sort.split(",")[1]), 
+                sort.split(",")[0]
+            )
+        );
+        
+        org.springframework.data.domain.Page<QuestionResponseDto> questions = questionService.searchQuestions(q, difficulty, type, categoryId, createdBy, pageable);
+        return ResponseEntity.ok(questions);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleException(Exception e) {
+        Map<String, String> error = new HashMap<>();
+        error.put("message", e.getMessage());
+        error.put("error", "Internal server error");
+        
+        if (e instanceof ResponseStatusException) {
+            ResponseStatusException rse = (ResponseStatusException) e;
+            return ResponseEntity.status(rse.getStatusCode())
+                    .body(Map.of("message", rse.getReason(), "error", rse.getStatusCode().toString()));
+        }
+        
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }
