@@ -241,6 +241,13 @@ public class QuestionServiceImpl implements QuestionService {
         questionRepo.delete(q);
     }
 
+    // SEARCH
+    @Override
+    public Page<QuestionResponseDto> searchQuestions(String keyword, String difficulty, String type, Long categoryId, String createdBy, Pageable pageable) {
+        Page<Question> questionPage = questionRepo.searchQuestions(keyword, difficulty, type, categoryId, createdBy, pageable);
+        return questionPage.map(entityDtoMapper::toQuestionResponseDto);
+    }
+
     // Validator function
     private void validateAnswersByType(QuestionType type, List<AnswerDto> answers) {
         if (answers == null || answers.isEmpty()) {
