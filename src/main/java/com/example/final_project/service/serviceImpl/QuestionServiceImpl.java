@@ -66,6 +66,13 @@ public class QuestionServiceImpl implements QuestionService {
                 return a;
             }).collect(Collectors.toList());
             q.setAnswers(answers);
+
+            // New logic: Populate correct_answer for SINGLE/MULTIPLE
+            List<String> correctTexts = dto.getAnswers().stream()
+                    .filter(a -> Boolean.TRUE.equals(a.getCorrect()))
+                    .map(AnswerDto::getText)
+                    .collect(Collectors.toList());
+            q.setCorrectAnswer(String.join("||", correctTexts));
         }
 
         Question savedQuestion = questionRepo.save(q);
@@ -144,7 +151,6 @@ public class QuestionServiceImpl implements QuestionService {
             falseAnswer.setQuestion(q);
             q.getAnswers().add(falseAnswer);
         } else {
-            q.setCorrectAnswer(null); // Reset correct answer if not TRUE_FALSE
             List<Answer> newAnswers = dto.getAnswers().stream().map(aDto -> {
                 Answer a = new Answer();
                 a.setText(aDto.getText());
@@ -153,6 +159,13 @@ public class QuestionServiceImpl implements QuestionService {
                 return a;
             }).collect(Collectors.toList());
             q.getAnswers().addAll(newAnswers);
+
+            // New logic: Populate correct_answer for SINGLE/MULTIPLE
+            List<String> correctTexts = dto.getAnswers().stream()
+                    .filter(a -> Boolean.TRUE.equals(a.getCorrect()))
+                    .map(AnswerDto::getText)
+                    .collect(Collectors.toList());
+            q.setCorrectAnswer(String.join("||", correctTexts));
         }
 
         Question updatedQuestion = questionRepo.save(q);
@@ -214,7 +227,6 @@ public class QuestionServiceImpl implements QuestionService {
             falseAnswer.setQuestion(q);
             q.getAnswers().add(falseAnswer);
         } else {
-            q.setCorrectAnswer(null); // Reset correct answer if not TRUE_FALSE
             List<Answer> newAnswers = dto.getAnswers().stream().map(aDto -> {
                 Answer a = new Answer();
                 a.setText(aDto.getText());
@@ -223,6 +235,13 @@ public class QuestionServiceImpl implements QuestionService {
                 return a;
             }).collect(Collectors.toList());
             q.getAnswers().addAll(newAnswers);
+
+            // New logic: Populate correct_answer for SINGLE/MULTIPLE
+            List<String> correctTexts = dto.getAnswers().stream()
+                    .filter(a -> Boolean.TRUE.equals(a.getCorrect()))
+                    .map(AnswerDto::getText)
+                    .collect(Collectors.toList());
+            q.setCorrectAnswer(String.join("||", correctTexts));
         }
 
         Question updatedQuestion = questionRepo.save(q);
