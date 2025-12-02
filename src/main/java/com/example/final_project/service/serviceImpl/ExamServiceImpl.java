@@ -137,6 +137,7 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ExamResponseDto> getExamsByTeacher(Long teacherId) {
         return examRepository.findByTeacherIdOrderByCreatedAtDesc(teacherId).stream()
                 .map(entityDtoMapper::toExamResponseDto)
@@ -144,12 +145,14 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<ExamResponseDto> getAllExams(Pageable pageable) {
         Page<Exam> examPage = examRepository.findAll(pageable);
         return examPage.map(entityDtoMapper::toExamResponseDto);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ExamResponseDto getExamById(Long examId, Long userId) {
         Exam exam = examRepository.findById(examId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Bài thi không tồn tại"));
@@ -185,6 +188,7 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<ExamResponseDto> searchExams(ExamSearchRequest searchRequest, Pageable pageable) {
         Specification<Exam> spec = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
