@@ -22,4 +22,6 @@ public class QuestionResponseDto {
     private List<AnswerDto> answers;
     private String createdBy;
     private LocalDateTime createdAt;
+    private String categoryName;
+    private String correctAnswer;
 }

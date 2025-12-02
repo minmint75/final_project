@@ -26,10 +26,14 @@ public class EntityDtoMapper {
 
         if (question.getCategory() != null) {
             dto.setCategory(toCategoryListDto(question.getCategory()));
+            dto.setCategoryName(question.getCategory().getName());
         }
 
+        dto.setCorrectAnswer(question.getCorrectAnswer());
+
         if (question.getAnswers() != null) {
-            List<AnswerDto> answerDtos = question.getAnswers().stream().map(this::toAnswerDto).collect(Collectors.toList());
+            List<AnswerDto> answerDtos = question.getAnswers().stream().map(this::toAnswerDto)
+                    .collect(Collectors.toList());
             dto.setAnswers(answerDtos);
         }
 
@@ -60,7 +64,8 @@ public class EntityDtoMapper {
         if (teacher == null) {
             return null;
         }
-        return new TeacherResponseDto(teacher.getTeacherId(), teacher.getUsername(), teacher.getEmail(), teacher.getAvatar());
+        return new TeacherResponseDto(teacher.getTeacherId(), teacher.getUsername(), teacher.getEmail(),
+                teacher.getAvatar());
     }
 
     public ExamQuestionResponseDto toExamQuestionResponseDto(ExamQuestion examQuestion) {
@@ -74,15 +79,13 @@ public class EntityDtoMapper {
         return dto;
     }
 
-
     public ExamResponseDto toExamResponseDto(Exam exam) {
         if (exam == null) {
             return null;
         }
 
-        List<ExamQuestionResponseDto> examQuestionDtos = exam.getExamQuestions() == null ?
-                Collections.emptyList() :
-                exam.getExamQuestions().stream().map(this::toExamQuestionResponseDto).collect(Collectors.toList());
+        List<ExamQuestionResponseDto> examQuestionDtos = exam.getExamQuestions() == null ? Collections.emptyList()
+                : exam.getExamQuestions().stream().map(this::toExamQuestionResponseDto).collect(Collectors.toList());
 
         return ExamResponseDto.builder()
                 .examId(exam.getExamId())

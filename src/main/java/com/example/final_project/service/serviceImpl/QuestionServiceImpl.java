@@ -82,7 +82,8 @@ public class QuestionServiceImpl implements QuestionService {
     // GET SINGLE
     @Override
     public QuestionResponseDto getQuestionById(Long id) {
-        Question question = questionRepo.findById(id).orElseThrow(() -> new NoSuchElementException("Câu hỏi không tồn tại"));
+        Question question = questionRepo.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Câu hỏi không tồn tại"));
         return entityDtoMapper.toQuestionResponseDto(question);
     }
 
@@ -175,9 +176,15 @@ public class QuestionServiceImpl implements QuestionService {
     // DELETE
     @Override
     public void deleteQuestion(Long id, String actorUsername) {
-        Question q = questionRepo.findById(id).orElseThrow(() -> new NoSuchElementException("Câu hỏi không tồn tại"));;
+        Question q = questionRepo.findById(id).orElseThrow(() -> new NoSuchElementException("Câu hỏi không tồn tại"));
+        ;
 
-        if (!q.getCreatedBy().equals(actorUsername)) {
+        // Check if user is admin or owner
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isAdmin && !q.getCreatedBy().equals(actorUsername)) {
             throw new SecurityException("Không có quyền xóa câu hỏi này.");
         }
         if (examQuestionRepo.existsByQuestionId(id)) {
@@ -262,8 +269,10 @@ public class QuestionServiceImpl implements QuestionService {
 
     // SEARCH
     @Override
-    public Page<QuestionResponseDto> searchQuestions(String keyword, String difficulty, String type, Long categoryId, String createdBy, Pageable pageable) {
-        Page<Question> questionPage = questionRepo.searchQuestions(keyword, difficulty, type, categoryId, createdBy, pageable);
+    public Page<QuestionResponseDto> searchQuestions(String keyword, String difficulty, String type, Long categoryId,
+            String createdBy, Pageable pageable) {
+        Page<Question> questionPage = questionRepo.searchQuestions(keyword, difficulty, type, categoryId, createdBy,
+                pageable);
         return questionPage.map(entityDtoMapper::toQuestionResponseDto);
     }
 
@@ -276,10 +285,12 @@ public class QuestionServiceImpl implements QuestionService {
 
         switch (type) {
             case SINGLE:
-                if (correctCount != 1) throw new IllegalArgumentException("Loại " + type + " phải có đúng 1 đáp án đúng.");
+                if (correctCount != 1)
+                    throw new IllegalArgumentException("Loại " + type + " phải có đúng 1 đáp án đúng.");
                 break;
             case MULTIPLE:
-                if (correctCount < 2) throw new IllegalArgumentException("Loại MULTIPLE phải có ít nhất 2 đáp án đúng.");
+                if (correctCount < 2)
+                    throw new IllegalArgumentException("Loại MULTIPLE phải có ít nhất 2 đáp án đúng.");
                 break;
         }
     }
