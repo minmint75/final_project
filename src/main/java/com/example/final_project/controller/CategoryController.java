@@ -50,7 +50,7 @@ public class CategoryController {
         }
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<List<CategoryListDto>> getAllCategories() {
         return ResponseEntity.ok(categoryService.getAllCategories());
     }
@@ -62,7 +62,7 @@ public class CategoryController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<CategoryListDto> createCategory(@Valid @RequestBody CategoryRequest categoryRequest) {
         try {
             CategoryListDto created = categoryService.saveCategory(categoryRequest);

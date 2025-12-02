@@ -48,7 +48,7 @@ public class ExamOnlineController {
         return ResponseEntity.ok(exams);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/get/{id}")
     public ResponseEntity<ExamOnlineResponse> getExamOnlineById(@PathVariable Long id, Principal principal) {
         ExamOnlineResponse exam = examOnlineService.getExamOnlineById(id, (Authentication) principal);
         return ResponseEntity.ok(exam);
