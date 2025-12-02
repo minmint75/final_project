@@ -40,7 +40,6 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -48,7 +47,16 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/auth/login", "/api/register/**", "/api/forgot-password", "/api/reset-password", "/api/validate-token").permitAll()
+                        .requestMatchers(
+                                "/api/auth/login",
+                                "/api/register/**",
+                                "/api/forgot-password",
+                                "/api/reset-password",
+                                "/api/validate-token",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/test", "/uploads/**", "/api/categories").permitAll()
 
                         .requestMatchers("/api/questions/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_TEACHER")
