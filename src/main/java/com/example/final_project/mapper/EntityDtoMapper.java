@@ -20,6 +20,7 @@ public class EntityDtoMapper {
         dto.setId(question.getId());
         dto.setTitle(question.getTitle());
         dto.setType(question.getType());
+        dto.setVisibility(question.getVisibility());
         dto.setDifficulty(question.getDifficulty());
         dto.setCreatedBy(question.getCreatedBy());
         dto.setCreatedAt(question.getCreatedAt());

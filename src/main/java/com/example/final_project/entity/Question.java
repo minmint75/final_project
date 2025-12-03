@@ -24,6 +24,10 @@ public class Question {
     @Column(nullable = false)
     private QuestionType type;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private QuestionVisibility visibility = QuestionVisibility.PRIVATE;
+
     @Column(nullable = false)
     private String difficulty;
 
