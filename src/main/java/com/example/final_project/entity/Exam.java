@@ -25,6 +25,10 @@ public class Exam {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ExamLevel examLevel;
+
     @Column(name = "duration_minutes", nullable = false)
     private Integer durationMinutes;
 

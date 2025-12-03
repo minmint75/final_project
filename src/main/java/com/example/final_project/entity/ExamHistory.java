@@ -24,12 +24,10 @@ public class ExamHistory {
     // ====== Thông tin bài thi ======
     @ManyToOne(optional = true) // Made optional to support ExamOnline
     @JoinColumn(name = "exam_id")
-    @JsonIgnore
     private Exam exam;
 
     @ManyToOne(optional = true) // Added for ExamOnline
     @JoinColumn(name = "exam_online_id")
-    @JsonIgnore
     private ExamOnline examOnline;
 
     @Column(name = "exam_title", nullable = false, length = 255)
@@ -44,7 +42,6 @@ public class ExamHistory {
     // ====== Thông tin học viên ======
     @ManyToOne(optional = false)
     @JoinColumn(name = "student_id")
-    @JsonIgnore
     private Student student;
 
     @Column(name = "display_name", nullable = false, length = 255)
