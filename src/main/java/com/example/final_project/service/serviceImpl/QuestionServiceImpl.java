@@ -125,8 +125,8 @@ public class QuestionServiceImpl implements QuestionService {
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
-        // Allow if user is admin or is the owner
-        if (!isAdmin && !q.getCreatedBy().equals(actorUsername)) {
+        // Only allow owner to update
+        if (!q.getCreatedBy().equals(actorUsername)) {
             throw new SecurityException("Không có quyền cập nhật câu hỏi này.");
         }
 
