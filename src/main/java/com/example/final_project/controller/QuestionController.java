@@ -95,8 +95,14 @@ public class QuestionController {
             @RequestParam(required = false) String createdBy,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt,desc") String sort) {
+            @RequestParam(defaultValue = "createdAt,desc") String sort,
+            Principal principal) {
         
+        if (principal == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
+        }
+        String currentUsername = principal.getName();
+
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
             page, size, 
             org.springframework.data.domain.Sort.by(
@@ -105,7 +111,7 @@ public class QuestionController {
             )
         );
         
-        org.springframework.data.domain.Page<QuestionResponseDto> questions = questionService.searchQuestions(q, difficulty, type, categoryId, createdBy, pageable);
+        org.springframework.data.domain.Page<QuestionResponseDto> questions = questionService.searchQuestions(q, difficulty, type, categoryId, createdBy, currentUsername, pageable);
         return ResponseEntity.ok(questions);
     }
 

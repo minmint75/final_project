@@ -38,6 +38,7 @@ public class QuestionServiceImpl implements QuestionService {
         Question q = new Question();
         q.setTitle(dto.getTitle());
         q.setType(type);
+        q.setVisibility(QuestionVisibility.valueOf(dto.getVisibility().toUpperCase()));
         q.setDifficulty(dto.getDifficulty());
         q.setCategory(category);
         q.setCreatedBy(dto.getCreatedBy());
@@ -84,6 +85,15 @@ public class QuestionServiceImpl implements QuestionService {
     public QuestionResponseDto getQuestionById(Long id) {
         Question question = questionRepo.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Câu hỏi không tồn tại"));
+
+        if (question.getVisibility() == QuestionVisibility.PRIVATE) {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String currentUsername = authentication.getName();
+            if (!question.getCreatedBy().equals(currentUsername)) {
+                throw new SecurityException("Không có quyền xem câu hỏi này.");
+            }
+        }
+
         return entityDtoMapper.toQuestionResponseDto(question);
     }
 
@@ -91,7 +101,9 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public Page<QuestionResponseDto> getAllQuestions(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<Question> questionPage = questionRepo.findAllByOrderByCreatedAtDesc(pageable);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        Page<Question> questionPage = questionRepo.findAllPublicOrCreator(currentUsername, pageable);
         return questionPage.map(entityDtoMapper::toQuestionResponseDto);
     }
 
@@ -107,12 +119,6 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public QuestionResponseDto updateQuestion(Long id, QuestionUpdateDto dto, String actorUsername) {
         Question q = questionRepo.findById(id).orElseThrow(() -> new NoSuchElementException("Câu hỏi không tồn tại"));
-
-        // Check if already used in exam -> block update
-        // if (examQuestionRepo.existsByQuestionId(id)) {
-        // throw new IllegalStateException("Không thể cập nhật câu hỏi đã được chọn vào
-        // bài thi.");
-        // }
 
         // Check if user is admin or owner
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -134,6 +140,9 @@ public class QuestionServiceImpl implements QuestionService {
 
         q.setTitle(dto.getTitle());
         q.setType(type);
+        if (dto.getVisibility() != null && !dto.getVisibility().isBlank()) {
+            q.setVisibility(QuestionVisibility.valueOf(dto.getVisibility().toUpperCase()));
+        }
         q.setDifficulty(dto.getDifficulty());
         q.setCategory(category);
 
@@ -199,14 +208,6 @@ public class QuestionServiceImpl implements QuestionService {
     public QuestionResponseDto updateQuestionAsAdmin(Long id, QuestionUpdateDto dto) {
         Question q = questionRepo.findById(id).orElseThrow(() -> new NoSuchElementException("Câu hỏi không tồn tại"));
 
-        // Check if already used in exam -> block update
-        if (examQuestionRepo.existsByQuestionId(id)) {
-            // throw new IllegalStateException("Không thể cập nhật câu hỏi đã được chọn vào
-            // bài thi.");
-        }
-
-        // Admin can update any question - no ownership check
-
         QuestionType type = QuestionType.valueOf(dto.getType());
         if (type != QuestionType.TRUE_FALSE) {
             validateAnswersByType(type, dto.getAnswers());
@@ -217,6 +218,9 @@ public class QuestionServiceImpl implements QuestionService {
 
         q.setTitle(dto.getTitle());
         q.setType(type);
+        if (dto.getVisibility() != null && !dto.getVisibility().isBlank()) {
+            q.setVisibility(QuestionVisibility.valueOf(dto.getVisibility().toUpperCase()));
+        }
         q.setDifficulty(dto.getDifficulty());
         q.setCategory(category);
 
@@ -272,9 +276,9 @@ public class QuestionServiceImpl implements QuestionService {
     // SEARCH
     @Override
     public Page<QuestionResponseDto> searchQuestions(String keyword, String difficulty, String type, Long categoryId,
-            String createdBy, Pageable pageable) {
+            String createdBy, String currentUsername, Pageable pageable) {
         Page<Question> questionPage = questionRepo.searchQuestions(keyword, difficulty, type, categoryId, createdBy,
-                pageable);
+                currentUsername, pageable);
         return questionPage.map(entityDtoMapper::toQuestionResponseDto);
     }
 

@@ -13,7 +13,7 @@ public interface QuestionService {
     QuestionResponseDto getQuestionById(Long id);
     Page<QuestionResponseDto> getAllQuestions(int page, int size);
     Page<QuestionResponseDto> getQuestionsByUser(String username, int page, int size);
-    Page<QuestionResponseDto> searchQuestions(String keyword, String difficulty, String type, Long categoryId, String createdBy, Pageable pageable);
+    Page<QuestionResponseDto> searchQuestions(String keyword, String difficulty, String type, Long categoryId, String createdBy, String currentUsername, Pageable pageable);
     void deleteQuestion(Long id, String actorUsername);
     void deleteQuestionAsAdmin(Long id);
 }

@@ -17,6 +17,8 @@ public class QuestionUpdateDto {
     @NotBlank
     private String type;
 
+    private String visibility;
+
     @NotBlank
     private String difficulty;
 
