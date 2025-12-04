@@ -62,6 +62,7 @@ public class ExamServiceImpl implements ExamService {
                 .endTime(dto.getEndTime())
                 .teacher(teacher)
                 .category(category)
+                .examLevel(dto.getExamLevel())
                 .build();
 
         exam = examRepository.save(exam);
@@ -113,6 +114,7 @@ public class ExamServiceImpl implements ExamService {
         exam.setStartTime(dto.getStartTime());
         exam.setEndTime(dto.getEndTime());
         exam.setCategory(category);
+        exam.setExamLevel(dto.getExamLevel());
 
         if (exam.getExamQuestions() == null) {
             exam.setExamQuestions(new ArrayList<>());

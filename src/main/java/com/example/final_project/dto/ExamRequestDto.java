@@ -1,5 +1,6 @@
 package com.example.final_project.dto;
 
+import com.example.final_project.entity.ExamLevel;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -27,4 +28,7 @@ public class ExamRequestDto {
 
     @NotNull(message = "Danh mục không được để trống")
     private Long categoryId;
+
+    @NotNull(message = "Mức độ đề thi không được để trống")
+    private ExamLevel examLevel;
 }
