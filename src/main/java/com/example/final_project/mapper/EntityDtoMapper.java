@@ -100,7 +100,9 @@ public class EntityDtoMapper {
                 .teacher(toTeacherResponseDto(exam.getTeacher()))
                 .category(toCategoryListDto(exam.getCategory()))
                 .examQuestions(examQuestionDtos)
+                .examQuestions(examQuestionDtos)
                 .questionCount(examQuestionDtos.size())
+                .examLevel(exam != null && exam.getExamLevel() != null ? exam.getExamLevel().name() : null)
                 .build();
     }
 
