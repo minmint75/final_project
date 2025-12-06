@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ExamOnlineResultsDto {
 
-    private String examName;
+    public String examName;
     private long numberOfParticipants;
     private long numberOfSubmissions;
     private List<StudentResult> results;

@@ -1,18 +1,19 @@
 package com.example.final_project.service.serviceImpl;
 
-import com.example.final_project.dto.ExamOnlineRequest;
-import com.example.final_project.dto.ExamOnlineResponse;
-import com.example.final_project.dto.ExamOnlineResultsDto;
+import com.example.final_project.dto.*;
 import com.example.final_project.entity.*;
 import com.example.final_project.repository.CategoryRepository;
 import com.example.final_project.repository.ExamHistoryRepository;
 import com.example.final_project.repository.ExamOnlineRepository;
 import com.example.final_project.repository.QuestionRepository;
+import com.example.final_project.repository.StudentRepository;
 import com.example.final_project.repository.TeacherRepository;
 import com.example.final_project.service.CustomUserDetails;
 import com.example.final_project.service.ExamOnlineService;
+import com.example.final_project.service.WaitingRoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +32,9 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
     private final QuestionRepository questionRepository;
     private final ExamHistoryRepository examHistoryRepository;
     private final CategoryRepository categoryRepository;
+    private final StudentRepository studentRepository;
+    private final WaitingRoomService waitingRoomService;
+    private final SimpMessagingTemplate messagingTemplate;
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Override
@@ -100,6 +104,16 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bài thi đã bắt đầu hoặc đã kết thúc, không thể start.");
         }
         exam.setStatus(ExamStatus.IN_PROGRESS);
+
+        // Notify waiting room participants that the exam has started
+        WaitingRoomNotification notification = new WaitingRoomNotification(
+                exam.getName(),
+                0,
+                new ArrayList<>(),
+                "START"
+        );
+        messagingTemplate.convertAndSend("/topic/waiting-room/" + exam.getAccessCode(), notification);
+
         return mapToResponse(examOnlineRepository.save(exam));
     }
 
@@ -218,6 +232,66 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
         return examOnlineRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public ExamOnlineJoinResponse joinExamOnline(String accessCode, Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Student student = studentRepository.findById(userDetails.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student not found"));
+
+        ExamOnline examOnline = findByAccessCode(accessCode);
+
+        if (examOnline.getStatus() != ExamStatus.PENDING) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Exam is not available for joining.");
+        }
+
+        List<WaitingRoomUserDto> participants = waitingRoomService.getParticipants(accessCode);
+        if (participants != null && participants.size() >= examOnline.getMaxParticipants()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Exam has reached its maximum number of participants.");
+        }
+
+
+        WaitingRoomUserDto userDto = new WaitingRoomUserDto(student.getStudentId(), student.getUsername(), student.getAvatar());
+        waitingRoomService.addUser(accessCode, userDto);
+
+        broadcastNewParticipant(accessCode, userDto.getDisplayName());
+
+        List<WaitingRoomUserDto> updatedParticipants = waitingRoomService.getParticipants(accessCode);
+        return new ExamOnlineJoinResponse(
+                examOnline.getId(),
+                examOnline.getName(),
+                examOnline.getStatus(),
+                updatedParticipants.size(),
+                updatedParticipants
+        );
+    }
+
+    @Override
+    public ExamOnline findByAccessCode(String accessCode) {
+        return examOnlineRepository.findByAccessCode(accessCode)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Exam with access code not found."));
+    }
+
+    private void broadcastNewParticipant(String accessCode, String displayName) {
+        ExamOnline examOnline = findByAccessCode(accessCode);
+        List<WaitingRoomUserDto> participants = waitingRoomService.getParticipants(accessCode);
+        int participantCount = participants != null ? participants.size() : 0;
+
+        WaitingRoomNotification notification = new WaitingRoomNotification(
+                examOnline.getName(),
+                participantCount,
+                participants,
+                "Student " + displayName + " has joined the waiting room."
+        );
+
+        messagingTemplate.convertAndSend("/topic/waiting-room/" + accessCode, notification);
+    }
+
+    @Override
+    public String getWaitingRoomUrl(String accessCode) {
+        return "http://localhost:5173/waiting-room/" + accessCode;
     }
 
     private ExamOnline getOwnedExam(Long examId, Authentication authentication) {
