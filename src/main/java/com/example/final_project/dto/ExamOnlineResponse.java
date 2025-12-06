@@ -19,4 +19,6 @@ public class ExamOnlineResponse {
     private ExamStatus status;
     private String teacherName;
     private LocalDateTime createdAt;
+    private Long categoryId;
+    private String categoryName;
 }

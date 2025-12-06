@@ -4,6 +4,7 @@ import com.example.final_project.dto.ExamOnlineRequest;
 import com.example.final_project.dto.ExamOnlineResponse;
 import com.example.final_project.dto.ExamOnlineResultsDto;
 import com.example.final_project.entity.*;
+import com.example.final_project.repository.CategoryRepository;
 import com.example.final_project.repository.ExamHistoryRepository;
 import com.example.final_project.repository.ExamOnlineRepository;
 import com.example.final_project.repository.QuestionRepository;
@@ -29,6 +30,7 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
     private final TeacherRepository teacherRepository;
     private final QuestionRepository questionRepository;
     private final ExamHistoryRepository examHistoryRepository;
+    private final CategoryRepository categoryRepository;
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Override
@@ -58,6 +60,9 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
                 });
         }
 
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy danh mục"));
+
         List<Question> availableQuestions = questionRepository.findByDifficulty(request.getLevel().name());
         if (availableQuestions.size() < request.getNumberOfQuestions()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không đủ câu hỏi trong ngân hàng cho mức độ và số lượng đã chọn.");
@@ -80,6 +85,7 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
                 .status(ExamStatus.PENDING)
                 .teacher(teacher) // Can be null for ADMIN
                 .questions(selectedQuestions)
+                .category(category)
                 .build();
 
         exam = examOnlineRepository.save(exam);
@@ -158,6 +164,10 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
                     }
                 });
         }
+
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy danh mục"));
+        exam.setCategory(category);
 
         exam.setName(request.getName().trim());
         exam.setNumberOfQuestions(request.getNumberOfQuestions());
@@ -261,6 +271,10 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
             dto.setTeacherName(exam.getTeacher().getUsername());
         } else {
             dto.setTeacherName("ADMIN");
+        }
+        if (exam.getCategory() != null) {
+            dto.setCategoryId(exam.getCategory().getId());
+            dto.setCategoryName(exam.getCategory().getName());
         }
         return dto;
     }

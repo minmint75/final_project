@@ -47,6 +47,10 @@ public class ExamOnline {
     @JoinColumn(name = "teacher_id", nullable = true) // Allow null for admin-created exams
     private Teacher teacher;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
+
     @ManyToMany
     @JoinTable(
         name = "exam_online_questions",

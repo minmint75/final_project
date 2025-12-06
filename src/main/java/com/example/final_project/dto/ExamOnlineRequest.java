@@ -33,4 +33,7 @@ public class ExamOnlineRequest {
     @NotNull(message = "Số người tối đa không được để trống")
     @Min(value = 1, message = "Số người tối đa phải lớn hơn 0")
     private Integer maxParticipants;
+
+    @NotNull(message = "Danh mục không được để trống")
+    private Long categoryId;
 }

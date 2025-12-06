@@ -43,6 +43,6 @@ public class Category {
     private List<Exam> exam = new ArrayList<>();
 
 
-//    @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
-//    private List<ExamOnline> examOnlines = new ArrayList<>();
+    @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+    private List<ExamOnline> examOnline = new ArrayList<>();
 }
