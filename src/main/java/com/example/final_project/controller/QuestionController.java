@@ -44,7 +44,7 @@ public class QuestionController {
 
     @GetMapping("/my")
     public ResponseEntity<Page<QuestionResponseDto>> getMyQuestions(
-            @RequestParam(defaultValue = "0") int page, 
+            @RequestParam(defaultValue = "0") int page,
             Principal principal) {
         if (principal == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
@@ -56,8 +56,8 @@ public class QuestionController {
 
     @PatchMapping("/edit/{id}")
     public ResponseEntity<QuestionResponseDto> update(@PathVariable Long id,
-                                    @Valid @RequestBody QuestionUpdateDto dto,
-                                    Principal principal) {
+            @Valid @RequestBody QuestionUpdateDto dto,
+            Principal principal) {
         if (principal == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
         }
@@ -65,7 +65,7 @@ public class QuestionController {
         QuestionResponseDto updated = questionService.updateQuestion(id, dto, currentUser);
         return ResponseEntity.ok(updated);
     }
-    
+
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id, Principal principal) {
         if (principal == null) {
@@ -93,25 +93,25 @@ public class QuestionController {
             @RequestParam(required = false) String type,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String createdBy,
+            @RequestParam(required = false) String visibility,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt,desc") String sort,
             Principal principal) {
-        
+
         if (principal == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
         }
         String currentUsername = principal.getName();
 
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
-            page, size, 
-            org.springframework.data.domain.Sort.by(
-                org.springframework.data.domain.Sort.Direction.fromString(sort.split(",")[1]), 
-                sort.split(",")[0]
-            )
-        );
-        
-        org.springframework.data.domain.Page<QuestionResponseDto> questions = questionService.searchQuestions(q, difficulty, type, categoryId, createdBy, currentUsername, pageable);
+                page, size,
+                org.springframework.data.domain.Sort.by(
+                        org.springframework.data.domain.Sort.Direction.fromString(sort.split(",")[1]),
+                        sort.split(",")[0]));
+
+        org.springframework.data.domain.Page<QuestionResponseDto> questions = questionService.searchQuestions(q,
+                difficulty, type, categoryId, createdBy, visibility, currentUsername, pageable);
         return ResponseEntity.ok(questions);
     }
 
@@ -120,13 +120,13 @@ public class QuestionController {
         Map<String, String> error = new HashMap<>();
         error.put("message", e.getMessage());
         error.put("error", "Internal server error");
-        
+
         if (e instanceof ResponseStatusException) {
             ResponseStatusException rse = (ResponseStatusException) e;
             return ResponseEntity.status(rse.getStatusCode())
                     .body(Map.of("message", rse.getReason(), "error", rse.getStatusCode().toString()));
         }
-        
+
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }

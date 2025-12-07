@@ -24,12 +24,14 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
                      "(:type IS NULL OR q.type = :type) AND " +
                      "(:categoryId IS NULL OR q.category.id = :categoryId) AND " +
                      "(:createdBy IS NULL OR q.createdBy = :createdBy) AND " +
+                     "(:visibility IS NULL OR q.visibility = :visibility) AND " +
                      "(q.visibility = 'PUBLIC' OR q.createdBy = :currentUsername)")
        Page<Question> searchQuestions(@Param("keyword") String keyword,
                      @Param("difficulty") String difficulty,
-                     @Param("type") String type,
+                     @Param("type") com.example.final_project.entity.QuestionType type,
                      @Param("categoryId") Long categoryId,
                      @Param("createdBy") String createdBy,
+                     @Param("visibility") com.example.final_project.entity.QuestionVisibility visibility,
                      @Param("currentUsername") String currentUsername,
                      Pageable pageable);
 }

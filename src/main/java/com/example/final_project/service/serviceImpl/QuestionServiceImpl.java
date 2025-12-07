@@ -276,9 +276,28 @@ public class QuestionServiceImpl implements QuestionService {
     // SEARCH
     @Override
     public Page<QuestionResponseDto> searchQuestions(String keyword, String difficulty, String type, Long categoryId,
-            String createdBy, String currentUsername, Pageable pageable) {
-        Page<Question> questionPage = questionRepo.searchQuestions(keyword, difficulty, type, categoryId, createdBy,
-                currentUsername, pageable);
+            String createdBy, String visibility, String currentUsername, Pageable pageable) {
+
+        com.example.final_project.entity.QuestionVisibility visEnum = null;
+        if (visibility != null && !visibility.isEmpty()) {
+            try {
+                visEnum = com.example.final_project.entity.QuestionVisibility.valueOf(visibility.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // Ignore invalid visibility
+            }
+        }
+
+        com.example.final_project.entity.QuestionType typeEnum = null;
+        if (type != null && !type.isEmpty()) {
+            try {
+                typeEnum = com.example.final_project.entity.QuestionType.valueOf(type.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // Ignore invalid type
+            }
+        }
+
+        Page<Question> questionPage = questionRepo.searchQuestions(keyword, difficulty, typeEnum, categoryId, createdBy,
+                visEnum, currentUsername, pageable);
         return questionPage.map(entityDtoMapper::toQuestionResponseDto);
     }
 

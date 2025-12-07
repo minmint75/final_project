@@ -14,7 +14,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-
 import java.util.stream.Collectors;
 
 @Service
@@ -42,8 +41,6 @@ public class ExamTakeServiceImpl implements ExamTakeService {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bài thi đã kết thúc");
                 }
 
-                // TODO: Check if student has already taken the exam (if needed based on rules)
-
                 List<QuestionTakeDto> questionDtos = exam.getExamQuestions().stream()
                                 .map(ExamQuestion::getQuestion)
                                 .map(entityDtoMapper::toQuestionTakeDto)
@@ -70,14 +67,12 @@ public class ExamTakeServiceImpl implements ExamTakeService {
                                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                                                 "Sinh viên không tồn tại"));
 
-                // Submitted answers: Map<QuestionId, List<AnswerId>>
                 Map<Long, List<Long>> submittedAnswers = submissionDto.getAnswers();
 
                 List<Question> questions = exam.getExamQuestions().stream()
                                 .map(ExamQuestion::getQuestion)
                                 .collect(Collectors.toList());
 
-                // Map<QuestionId, List<CorrectAnswerId>>
                 Map<Long, List<Long>> correctAnswersMap = questions.stream()
                                 .collect(Collectors.toMap(
                                                 Question::getId,
@@ -93,8 +88,6 @@ public class ExamTakeServiceImpl implements ExamTakeService {
                         List<Long> studentSelectedIds = submittedAnswers.getOrDefault(questionId, List.of());
                         List<Long> correctIds = correctAnswersMap.getOrDefault(questionId, List.of());
 
-                        // Logic: Must select ALL correct answers and NO wrong answers.
-                        // i.e., properties of sets: Set(Student) == Set(Correct)
                         boolean isCorrect = studentSelectedIds.size() == correctIds.size()
                                         && studentSelectedIds.containsAll(correctIds)
                                         && correctIds.containsAll(studentSelectedIds);
@@ -109,6 +102,11 @@ public class ExamTakeServiceImpl implements ExamTakeService {
                 double score = Math.round(rawScore * 10.0) / 10.0;
                 int wrongCount = totalQuestions - correctCount;
 
+                // Calculate attempt number
+                Integer currentAttempts = examHistoryRepository.countByStudentStudentIdAndExamExamId(studentId,
+                                exam.getExamId());
+                int attemptNumber = (currentAttempts != null ? currentAttempts : 0) + 1;
+
                 ExamHistory examHistory = new ExamHistory();
                 examHistory.setExam(exam);
                 examHistory.setExamTitle(exam.getTitle());
@@ -120,6 +118,7 @@ public class ExamTakeServiceImpl implements ExamTakeService {
                 examHistory.setCorrectCount(correctCount);
                 examHistory.setWrongCount(wrongCount);
                 examHistory.setSubmittedAt(LocalDateTime.now());
+                examHistory.setAttemptNumber(attemptNumber);
 
                 ExamHistory savedHistory = examHistoryRepository.save(examHistory);
 
