@@ -296,8 +296,13 @@ public class QuestionServiceImpl implements QuestionService {
             }
         }
 
+        // Check if user is admin
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
         Page<Question> questionPage = questionRepo.searchQuestions(keyword, difficulty, typeEnum, categoryId, createdBy,
-                visEnum, currentUsername, pageable);
+                visEnum, currentUsername, isAdmin, pageable);
         return questionPage.map(entityDtoMapper::toQuestionResponseDto);
     }
 
