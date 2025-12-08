@@ -12,4 +12,5 @@ public class ExamSearchRequest {
     private String title;
     private com.example.final_project.entity.ExamLevel examLevel;
     private Long teacherId;
+    private com.example.final_project.entity.ExamStatus status;
 }

@@ -26,4 +26,5 @@ public class ExamResponseDto {
     private List<ExamQuestionResponseDto> examQuestions;
     private Integer questionCount;
     private String examLevel;
+    private String status;
 }

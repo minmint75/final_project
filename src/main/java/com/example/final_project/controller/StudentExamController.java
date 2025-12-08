@@ -23,6 +23,7 @@ public class StudentExamController {
 
     @GetMapping("/search")
     public ResponseEntity<Page<ExamResponseDto>> searchExams(ExamSearchRequest searchRequest, Pageable pageable) {
+        searchRequest.setStatus(com.example.final_project.entity.ExamStatus.PUBLISHED);
         Page<ExamResponseDto> exams = examService.searchExams(searchRequest, pageable);
         return ResponseEntity.ok(exams);
     }

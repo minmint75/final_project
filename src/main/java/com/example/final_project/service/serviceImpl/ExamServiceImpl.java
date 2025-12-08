@@ -62,7 +62,9 @@ public class ExamServiceImpl implements ExamService {
                 .endTime(dto.getEndTime())
                 .teacher(teacher)
                 .category(category)
+                .category(category)
                 .examLevel(dto.getExamLevel())
+                .status(dto.getStatus() != null ? dto.getStatus() : ExamStatus.DRAFT)
                 .build();
 
         exam = examRepository.save(exam);
@@ -115,6 +117,9 @@ public class ExamServiceImpl implements ExamService {
         exam.setEndTime(dto.getEndTime());
         exam.setCategory(category);
         exam.setExamLevel(dto.getExamLevel());
+        if (dto.getStatus() != null) {
+            exam.setStatus(dto.getStatus());
+        }
 
         if (exam.getExamQuestions() == null) {
             exam.setExamQuestions(new ArrayList<>());
@@ -220,6 +225,10 @@ public class ExamServiceImpl implements ExamService {
             if (searchRequest.getTeacherId() != null) {
                 predicates
                         .add(criteriaBuilder.equal(root.get("teacher").get("teacherId"), searchRequest.getTeacherId()));
+            }
+
+            if (searchRequest.getStatus() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("status"), searchRequest.getStatus()));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

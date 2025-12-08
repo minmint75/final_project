@@ -31,4 +31,6 @@ public class ExamRequestDto {
 
     @NotNull(message = "Mức độ đề thi không được để trống")
     private ExamLevel examLevel;
+
+    private com.example.final_project.entity.ExamStatus status;
 }

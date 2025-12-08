@@ -103,6 +103,7 @@ public class EntityDtoMapper {
                 .examQuestions(examQuestionDtos)
                 .questionCount(examQuestionDtos.size())
                 .examLevel(exam != null && exam.getExamLevel() != null ? exam.getExamLevel().name() : null)
+                .status(exam != null && exam.getStatus() != null ? exam.getStatus().name() : null)
                 .build();
     }
 

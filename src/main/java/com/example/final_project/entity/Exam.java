@@ -29,6 +29,10 @@ public class Exam {
     @Column(nullable = false)
     private ExamLevel examLevel;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ExamStatus status = ExamStatus.DRAFT;
+
     @Column(name = "duration_minutes", nullable = false)
     private Integer durationMinutes;
 

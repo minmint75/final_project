@@ -116,6 +116,8 @@ public class ExamController {
         // If not admin, restrict to own exams
         if (!isAdmin) {
             searchRequest.setTeacherId(userId);
+        } else {
+            // Admin can see everything
         }
 
         Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
