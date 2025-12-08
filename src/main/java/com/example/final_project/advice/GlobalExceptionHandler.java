@@ -67,6 +67,6 @@ public class GlobalExceptionHandler {
         ex.printStackTrace();
         String errorMsg = ex.getMessage() != null ? ex.getMessage() : "Lỗi hệ thống không xác định";
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Lỗi hệ thống", "message", errorMsg, "exception", ex.getClass().getSimpleName()));
+                .body(Map.of("error", "Lỗi hệ thống: " + ex.getClass().getName() + " - " + errorMsg));
     }
 }

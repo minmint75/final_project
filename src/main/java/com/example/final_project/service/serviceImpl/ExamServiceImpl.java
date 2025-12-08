@@ -205,12 +205,21 @@ public class ExamServiceImpl implements ExamService {
 
             if (searchRequest.getCategoryId() != null) {
                 predicates.add(
-                        criteriaBuilder.equal(root.get("category").get("categoryId"), searchRequest.getCategoryId()));
+                        criteriaBuilder.equal(root.get("category").get("id"), searchRequest.getCategoryId()));
             }
 
             if (StringUtils.hasText(searchRequest.getTitle())) {
                 predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("title")),
                         "%" + searchRequest.getTitle().toLowerCase() + "%"));
+            }
+
+            if (searchRequest.getExamLevel() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("examLevel"), searchRequest.getExamLevel()));
+            }
+
+            if (searchRequest.getTeacherId() != null) {
+                predicates
+                        .add(criteriaBuilder.equal(root.get("teacher").get("teacherId"), searchRequest.getTeacherId()));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

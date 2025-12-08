@@ -10,4 +10,6 @@ import lombok.NoArgsConstructor;
 public class ExamSearchRequest {
     private Long categoryId;
     private String title;
+    private com.example.final_project.entity.ExamLevel examLevel;
+    private Long teacherId;
 }

@@ -90,7 +90,36 @@ public class ExamController {
         if (principalObject instanceof CustomUserDetails) {
             return ((CustomUserDetails) principalObject).getId();
         } else {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Loại principal người dùng không hợp lệ. Không phải CustomUserDetails.");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Loại principal người dùng không hợp lệ. Không phải CustomUserDetails.");
         }
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<ExamResponseDto>> searchExams(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) com.example.final_project.entity.ExamLevel examLevel,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Principal principal) {
+
+        Long userId = getAuthenticatedUserId(principal);
+        Authentication authentication = (Authentication) principal;
+        boolean isAdmin = authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+
+        com.example.final_project.dto.ExamSearchRequest searchRequest = new com.example.final_project.dto.ExamSearchRequest();
+        searchRequest.setTitle(title);
+        searchRequest.setCategoryId(categoryId);
+        searchRequest.setExamLevel(examLevel);
+
+        // If not admin, restrict to own exams
+        if (!isAdmin) {
+            searchRequest.setTeacherId(userId);
+        }
+
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
+                org.springframework.data.domain.Sort.by("createdAt").descending());
+        return ResponseEntity.ok(examService.searchExams(searchRequest, pageable));
     }
 }
