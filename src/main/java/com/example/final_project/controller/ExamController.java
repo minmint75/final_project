@@ -22,12 +22,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/exams")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
 public class ExamController {
 
     private final ExamService examService;
 
     @PostMapping("/create")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
     public ResponseEntity<ExamResponseDto> createExam(@Valid @RequestBody ExamRequestDto dto, Principal principal) {
         Long userId = getAuthenticatedUserId(principal);
         ExamResponseDto exam = examService.createExam(dto, userId);
@@ -35,6 +35,7 @@ public class ExamController {
     }
 
     @PutMapping("/edit/{examId}")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
     public ResponseEntity<ExamResponseDto> updateExam(
             @PathVariable Long examId,
             @Valid @RequestBody ExamRequestDto dto,
@@ -45,12 +46,14 @@ public class ExamController {
     }
 
     @GetMapping("/all")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
     public ResponseEntity<Page<ExamResponseDto>> getAllExams(Pageable pageable) {
         Page<ExamResponseDto> exams = examService.getAllExams(pageable);
         return ResponseEntity.ok(exams);
     }
 
     @GetMapping("/my")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
     public ResponseEntity<List<ExamResponseDto>> getMyExams(Principal principal) {
         Authentication authentication = (Authentication) principal;
         if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
@@ -63,6 +66,7 @@ public class ExamController {
     }
 
     @GetMapping("/get/{examId}")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN') or hasRole('STUDENT')")
     public ResponseEntity<ExamResponseDto> getExam(@PathVariable Long examId, Principal principal) {
         Long userId = getAuthenticatedUserId(principal);
         ExamResponseDto exam = examService.getExamById(examId, userId);
@@ -70,6 +74,7 @@ public class ExamController {
     }
 
     @DeleteMapping("/delete/{examId}")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
     public ResponseEntity<Void> deleteExam(@PathVariable Long examId, Principal principal) {
         Long userId = getAuthenticatedUserId(principal);
         try {
@@ -96,6 +101,7 @@ public class ExamController {
     }
 
     @GetMapping("/search")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
     public ResponseEntity<Page<ExamResponseDto>> searchExams(
             @RequestParam(required = false) String title,
             @RequestParam(required = false) Long categoryId,

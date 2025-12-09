@@ -170,8 +170,9 @@ public class ExamServiceImpl implements ExamService {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean isAdmin = authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        boolean isStudent = authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_STUDENT"));
 
-        if (!isAdmin) {
+        if (!isAdmin && !isStudent) {
             if (exam.getTeacher() == null || !exam.getTeacher().getTeacherId().equals(userId)) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không có quyền xem bài thi này");
             }
