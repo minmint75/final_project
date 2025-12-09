@@ -54,6 +54,10 @@ public class ExamServiceImpl implements ExamService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Không tìm thấy danh mục với ID: " + dto.getCategoryId()));
 
+        if (examRepository.existsByTitle(dto.getTitle())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tên bài thi đã tồn tại");
+        }
+
         Exam exam = Exam.builder()
                 .title(dto.getTitle())
                 .description(dto.getDescription())
