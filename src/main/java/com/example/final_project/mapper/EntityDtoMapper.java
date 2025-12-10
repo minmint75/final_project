@@ -121,7 +121,7 @@ public class EntityDtoMapper {
         List<AnswerOptionDto> answerOptions = question.getAnswers().stream()
                 .map(this::toAnswerOptionDto)
                 .collect(Collectors.toList());
-        return new QuestionTakeDto(question.getId(), question.getTitle(), question.getType().name(), answerOptions);
+        return new QuestionTakeDto(question.getId(), question.getTitle(), question.getType(), answerOptions);
     }
 
     public ExamResultResponseDto toExamResultResponseDto(ExamHistory examHistory) {

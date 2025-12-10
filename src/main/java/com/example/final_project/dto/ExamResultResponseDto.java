@@ -25,4 +25,5 @@ public class ExamResultResponseDto {
     private String studentEmail;
     private Integer attemptNumber;
     private String categoryName;
+    private boolean passed;
 }

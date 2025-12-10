@@ -256,7 +256,7 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
         WaitingRoomUserDto userDto = new WaitingRoomUserDto(student.getStudentId(), student.getUsername(), student.getAvatar());
         waitingRoomService.addUser(accessCode, userDto);
 
-        broadcastNewParticipant(accessCode, userDto.getDisplayName());
+        broadcastParticipantUpdate(accessCode, userDto.getDisplayName() + " has joined the waiting room.");
 
         List<WaitingRoomUserDto> updatedParticipants = waitingRoomService.getParticipants(accessCode);
         return new ExamOnlineJoinResponse(
@@ -274,7 +274,139 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Exam with access code not found."));
     }
 
-    private void broadcastNewParticipant(String accessCode, String displayName) {
+    @Override
+    @Transactional(readOnly = true)
+    public ExamTakeResponseDto getTakeExamOnline(String accessCode, Authentication principal) {
+        CustomUserDetails userDetails = (CustomUserDetails) principal.getPrincipal();
+        Long studentId = userDetails.getId();
+
+        ExamOnline examOnline = findByAccessCode(accessCode);
+
+        if (examOnline.getStatus() != ExamStatus.IN_PROGRESS) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Exam is not currently in progress.");
+        }
+
+        // Check if student is in the waiting room (i.e., has joined)
+        boolean hasJoined = waitingRoomService.getParticipants(accessCode).stream()
+                .anyMatch(user -> user.getUserId().equals(studentId));
+        if (!hasJoined) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You have not joined this exam.");
+        }
+
+        // Check if student already submitted
+        if (examHistoryRepository.existsByExamOnlineIdAndStudentStudentId(examOnline.getId(), studentId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You have already submitted this exam.");
+        }
+
+
+        List<QuestionTakeDto> questionDtos = examOnline.getQuestions().stream()
+                .map(this::mapQuestionToTakeDto)
+                .collect(Collectors.toList());
+
+        return ExamTakeResponseDto.builder()
+                .examId(examOnline.getId()) // Using online exam ID
+                .title(examOnline.getName())
+                .description("Online Exam")
+                .durationMinutes((int) java.time.Duration.between(java.time.LocalDateTime.now(), examOnline.getSubmissionDeadline()).toMinutes())
+                .questions(questionDtos)
+                .build();
+    }
+
+    private QuestionTakeDto mapQuestionToTakeDto(Question question) {
+        List<AnswerOptionDto> options = question.getAnswers().stream()
+                .map(answer -> new AnswerOptionDto(answer.getId(), answer.getText()))
+                .collect(Collectors.toList());
+
+        return new QuestionTakeDto(
+                question.getId(),
+                question.getTitle(),
+                QuestionType.valueOf(question.getType().name()),
+                options
+        );
+    }
+
+
+    @Override
+    @Transactional
+    public ExamResultResponseDto submitOnlineExam(ExamSubmissionOnlineDto submissionDto, Authentication principal) {
+        CustomUserDetails userDetails = (CustomUserDetails) principal.getPrincipal();
+        Long studentId = userDetails.getId();
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student not found."));
+
+        ExamOnline examOnline = findByAccessCode(submissionDto.getAccessCode());
+
+        if (examOnline.getStatus() != ExamStatus.IN_PROGRESS) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Exam is not in progress or has already finished.");
+        }
+
+        // Check if student already submitted
+        if (examHistoryRepository.existsByExamOnlineIdAndStudentStudentId(examOnline.getId(), studentId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You have already submitted this exam.");
+        }
+
+
+        Map<Long, List<Long>> submittedAnswersMap = submissionDto.getAnswers().stream()
+                .collect(Collectors.toMap(StudentAnswerOnlineDto::getQuestionId, StudentAnswerOnlineDto::getAnswerOptionIds, (a,b) -> a));
+
+        int correctCount = 0;
+        int totalQuestions = examOnline.getQuestions().size();
+
+        for (Question question : examOnline.getQuestions()) {
+            List<Long> correctOptionIds = question.getAnswers().stream()
+                    .filter(Answer::isCorrect)
+                    .map(Answer::getId)
+                    .collect(Collectors.toList());
+
+            List<Long> submittedOptionIds = submittedAnswersMap.getOrDefault(question.getId(), Collections.emptyList());
+
+            if (new HashSet<>(correctOptionIds).equals(new HashSet<>(submittedOptionIds))) {
+                correctCount++;
+            }
+        }
+
+        int wrongCount = totalQuestions - correctCount;
+        double score = (double) correctCount / totalQuestions * 10;
+        boolean passed = score >= examOnline.getPassingScore();
+
+        // Find attempt number
+        int attemptNumber = examHistoryRepository.countByExamOnlineIdAndStudentStudentId(examOnline.getId(), studentId) + 1;
+
+
+        ExamHistory history = ExamHistory.builder()
+                .student(student)
+                .examOnline(examOnline)
+                .examTitle(examOnline.getName())
+                .difficulty(examOnline.getLevel().name())
+                .score(score)
+                .passed(passed)
+                .submittedAt(java.time.LocalDateTime.now())
+                .correctCount(correctCount)
+                .wrongCount(wrongCount)
+                .totalQuestions(totalQuestions)
+                .attemptNumber(attemptNumber)
+                .displayName(student.getUsername()) // or some other display name logic
+                .build();
+
+        examHistoryRepository.save(history);
+
+        // Remove user from waiting room after submission
+        waitingRoomService.removeUser(examOnline.getAccessCode(), studentId);
+
+        broadcastParticipantUpdate(examOnline.getAccessCode(), student.getUsername() + " has left the room.");
+
+        return ExamResultResponseDto.builder()
+                .examHistoryId(history.getId())
+                .examId(examOnline.getId())
+                .score(score)
+                .correctCount(correctCount)
+                .totalQuestions(totalQuestions)
+                .passed(passed)
+                .build();
+    }
+
+
+    private void broadcastParticipantUpdate(String accessCode, String message) {
         ExamOnline examOnline = findByAccessCode(accessCode);
         List<WaitingRoomUserDto> participants = waitingRoomService.getParticipants(accessCode);
         int participantCount = participants != null ? participants.size() : 0;
@@ -283,7 +415,7 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
                 examOnline.getName(),
                 participantCount,
                 participants,
-                "Student " + displayName + " has joined the waiting room."
+                message
         );
 
         messagingTemplate.convertAndSend("/topic/waiting-room/" + accessCode, notification);

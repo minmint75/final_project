@@ -1,9 +1,6 @@
 package com.example.final_project.controller;
 
-import com.example.final_project.dto.ExamOnlineJoinResponse;
-import com.example.final_project.dto.ExamOnlineRequest;
-import com.example.final_project.dto.ExamOnlineResponse;
-import com.example.final_project.dto.ExamOnlineResultsDto;
+import com.example.final_project.dto.*;
 import com.example.final_project.service.CustomUserDetails;
 import com.example.final_project.service.ExamOnlineService;
 import com.example.final_project.util.QrCodeUtil;
@@ -42,6 +39,20 @@ public class ExamOnlineController {
     public ResponseEntity<ExamOnlineJoinResponse> joinExamOnline(@PathVariable String accessCode, Principal principal) {
         ExamOnlineJoinResponse response = examOnlineService.joinExamOnline(accessCode, (Authentication) principal);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{accessCode}/take")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<ExamTakeResponseDto> takeExamOnline(@PathVariable String accessCode, Principal principal) {
+        ExamTakeResponseDto exam = examOnlineService.getTakeExamOnline(accessCode, (Authentication) principal);
+        return ResponseEntity.ok(exam);
+    }
+
+    @PostMapping("/submit")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<ExamResultResponseDto> submitExamOnline(@Valid @RequestBody ExamSubmissionOnlineDto submissionDto, Principal principal) {
+        ExamResultResponseDto result = examOnlineService.submitOnlineExam(submissionDto, (Authentication) principal);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/{accessCode}/qrcode")

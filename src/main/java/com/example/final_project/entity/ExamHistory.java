@@ -3,6 +3,7 @@ package com.example.final_project.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,12 +16,13 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class ExamHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    
     // ====== Thông tin bài thi ======
     @ManyToOne(optional = true) // Made optional to support ExamOnline
     @JoinColumn(name = "exam_id")
@@ -56,6 +58,9 @@ public class ExamHistory {
 
     @Column(name = "wrong_count", nullable = false)
     private Integer wrongCount = 0;
+    
+    @Column(name = "passed")
+    private boolean passed;
 
     @Column(name = "submitted_at", nullable = false)
     private LocalDateTime submittedAt;
