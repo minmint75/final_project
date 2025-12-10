@@ -26,4 +26,6 @@ public class QuestionResponseDto {
     private LocalDateTime createdAt;
     private String categoryName;
     private String correctAnswer;
+    private String createdByName;
+    private String createdByRole;
 }

@@ -23,6 +23,8 @@ public class QuestionServiceImpl implements QuestionService {
     private final CategoryRepository categoryRepo;
     private final ExamQuestionRepository examQuestionRepo;
     private final EntityDtoMapper entityDtoMapper;
+    private final TeacherRepository teacherRepo;
+    private final AdminRepository adminRepo;
 
     // CREATE
     @Override
@@ -77,7 +79,7 @@ public class QuestionServiceImpl implements QuestionService {
         }
 
         Question savedQuestion = questionRepo.save(q);
-        return entityDtoMapper.toQuestionResponseDto(savedQuestion);
+        return populateCreatorInfo(entityDtoMapper.toQuestionResponseDto(savedQuestion));
     }
 
     // GET SINGLE
@@ -95,7 +97,7 @@ public class QuestionServiceImpl implements QuestionService {
             }
         }
 
-        return entityDtoMapper.toQuestionResponseDto(question);
+        return populateCreatorInfo(entityDtoMapper.toQuestionResponseDto(question));
     }
 
     // LIST (paged, newest first)
@@ -105,7 +107,7 @@ public class QuestionServiceImpl implements QuestionService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
         Page<Question> questionPage = questionRepo.findAllPublicOrCreator(currentUsername, pageable);
-        return questionPage.map(entityDtoMapper::toQuestionResponseDto);
+        return questionPage.map(entityDtoMapper::toQuestionResponseDto).map(this::populateCreatorInfo);
     }
 
     // LIST BY USER (paged, newest first)
@@ -113,7 +115,7 @@ public class QuestionServiceImpl implements QuestionService {
     public Page<QuestionResponseDto> getQuestionsByUser(String username, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Question> questionPage = questionRepo.findByCreatedByOrderByCreatedAtDesc(username, pageable);
-        return questionPage.map(entityDtoMapper::toQuestionResponseDto);
+        return questionPage.map(entityDtoMapper::toQuestionResponseDto).map(this::populateCreatorInfo);
     }
 
     // UPDATE
@@ -127,7 +129,7 @@ public class QuestionServiceImpl implements QuestionService {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         // Only allow owner to update
-        if (!q.getCreatedBy().equals(actorUsername)) {
+        if (!isAdmin && !q.getCreatedBy().equals(actorUsername)) {
             throw new SecurityException("Không có quyền cập nhật câu hỏi này.");
         }
 
@@ -181,7 +183,7 @@ public class QuestionServiceImpl implements QuestionService {
         }
 
         Question updatedQuestion = questionRepo.save(q);
-        return entityDtoMapper.toQuestionResponseDto(updatedQuestion);
+        return populateCreatorInfo(entityDtoMapper.toQuestionResponseDto(updatedQuestion));
     }
 
     // DELETE
@@ -259,7 +261,7 @@ public class QuestionServiceImpl implements QuestionService {
         }
 
         Question updatedQuestion = questionRepo.save(q);
-        return entityDtoMapper.toQuestionResponseDto(updatedQuestion);
+        return populateCreatorInfo(entityDtoMapper.toQuestionResponseDto(updatedQuestion));
     }
 
     @Override
@@ -304,7 +306,7 @@ public class QuestionServiceImpl implements QuestionService {
 
         Page<Question> questionPage = questionRepo.searchQuestions(keyword, difficulty, typeEnum, categoryId, createdBy,
                 visEnum, currentUsername, isAdmin, pageable);
-        return questionPage.map(entityDtoMapper::toQuestionResponseDto);
+        return questionPage.map(entityDtoMapper::toQuestionResponseDto).map(this::populateCreatorInfo);
     }
 
     // Validator function
@@ -324,5 +326,38 @@ public class QuestionServiceImpl implements QuestionService {
                     throw new IllegalArgumentException("Loại MULTIPLE phải có ít nhất 2 đáp án đúng.");
                 break;
         }
+    }
+
+    private QuestionResponseDto populateCreatorInfo(QuestionResponseDto dto) {
+        if (dto == null)
+            return null;
+        String email = dto.getCreatedBy();
+        dto.setCreatedByRole(resolveRole(email));
+        dto.setCreatedByName(resolveName(email));
+        return dto;
+    }
+
+    private String resolveRole(String email) {
+        if (email == null || email.isBlank())
+            return null;
+        if (teacherRepo.findByEmail(email).isPresent())
+            return "teacher";
+        if (adminRepo.findByEmail(email).isPresent())
+            return "admin";
+        return null;
+    }
+
+    private String resolveName(String email) {
+        if (email == null || email.isBlank())
+            return null;
+        var teacherOpt = teacherRepo.findByEmail(email);
+        if (teacherOpt.isPresent()) {
+            return teacherOpt.get().getUsername();
+        }
+        var adminOpt = adminRepo.findByEmail(email);
+        if (adminOpt.isPresent()) {
+            return adminOpt.get().getUsername();
+        }
+        return "unknown";
     }
 }
