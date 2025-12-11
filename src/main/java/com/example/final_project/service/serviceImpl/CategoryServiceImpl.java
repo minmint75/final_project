@@ -45,8 +45,8 @@ public class CategoryServiceImpl implements CategoryService {
                 category.getName(),
                 category.getDescription(),
                 resolveRole(category.getCreatedBy()),
-                resolveName(category.getCreatedBy())
-        );
+                resolveName(category.getCreatedBy()),
+                category.getQuestions() != null ? category.getQuestions().size() : 0);
     }
 
     @Override
@@ -133,7 +133,7 @@ public class CategoryServiceImpl implements CategoryService {
             throw new SecurityException("Bạn không có quyền xóa danh mục này");
         }
 
-        if(!category.getQuestions().isEmpty() || !category.getExam().isEmpty()){
+        if (!category.getQuestions().isEmpty() || !category.getExam().isEmpty()) {
             throw new IllegalStateException("Không thể xóa danh mục đã chứa câu hỏi hoặc bài thi.");
         }
 
@@ -141,14 +141,18 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     private String resolveRole(String email) {
-        if (email == null || email.isBlank()) return null;
-        if (teacherRepository.findByEmail(email).isPresent()) return "teacher";
-        if (adminRepository.findByEmail(email).isPresent()) return "admin";
+        if (email == null || email.isBlank())
+            return null;
+        if (teacherRepository.findByEmail(email).isPresent())
+            return "teacher";
+        if (adminRepository.findByEmail(email).isPresent())
+            return "admin";
         return null;
     }
 
     private String resolveName(String email) {
-        if (email == null || email.isBlank()) return null;
+        if (email == null || email.isBlank())
+            return null;
         var teacherOpt = teacherRepository.findByEmail(email);
         if (teacherOpt.isPresent()) {
             return teacherOpt.get().getUsername();
