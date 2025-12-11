@@ -13,8 +13,9 @@ public class CategoryListDto {
     private Long id;
     private String name;
     private String description;
-    private String createdByRole; 
-    private String createdByName; 
+    private String createdByRole;
+    private String createdByName;
+    private int questionCount;
 
     // @NotNull
     // private long questionId;
