@@ -42,6 +42,8 @@ public class QuestionServiceImpl implements QuestionService {
         q.setDifficulty(dto.getDifficulty());
         q.setCategory(category);
         q.setCreatedBy(dto.getCreatedBy());
+        q.setCreatedByName(resolveName(dto.getCreatedBy()));
+        q.setCreatedByRole(resolveRole(dto.getCreatedBy()));
 
         if (type == QuestionType.TRUE_FALSE) {
             String currentCorrectAnswerText = dto.getAnswers().stream()
@@ -92,7 +94,7 @@ public class QuestionServiceImpl implements QuestionService {
         category.setTotalQuestions(category.getTotalQuestions() + 1);
         categoryRepo.save(category);
 
-        return populateCreatorInfo(entityDtoMapper.toQuestionResponseDto(savedQuestion));
+        return entityDtoMapper.toQuestionResponseDto(savedQuestion);
     }
 
     // GET SINGLE
@@ -218,7 +220,7 @@ public class QuestionServiceImpl implements QuestionService {
         }
 
         Question updatedQuestion = questionRepo.save(q);
-        return populateCreatorInfo(entityDtoMapper.toQuestionResponseDto(updatedQuestion));
+        return entityDtoMapper.toQuestionResponseDto(updatedQuestion);
     }
 
     // DELETE
@@ -323,7 +325,7 @@ public class QuestionServiceImpl implements QuestionService {
         }
 
         Question updatedQuestion = questionRepo.save(q);
-        return populateCreatorInfo(entityDtoMapper.toQuestionResponseDto(updatedQuestion));
+        return entityDtoMapper.toQuestionResponseDto(updatedQuestion);
     }
 
     @Override

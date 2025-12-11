@@ -23,6 +23,8 @@ public class EntityDtoMapper {
         dto.setVisibility(question.getVisibility());
         dto.setDifficulty(question.getDifficulty());
         dto.setCreatedBy(question.getCreatedBy());
+        dto.setCreatedByName(question.getCreatedByName());
+        dto.setCreatedByRole(question.getCreatedByRole());
         dto.setCreatedAt(question.getCreatedAt());
 
         if (question.getCategory() != null) {
