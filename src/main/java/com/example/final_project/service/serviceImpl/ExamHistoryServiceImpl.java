@@ -62,4 +62,9 @@ public class ExamHistoryServiceImpl implements ExamHistoryService {
     public Integer countByStudentAndExamOnline(Long studentId, Long examOnlineId) {
         return examHistoryRepository.countByStudentStudentIdAndExamOnlineId(studentId, examOnlineId);
     }
+
+    @Override
+    public List<Object[]> getExamRankingByExamId(Long examId) {
+        return examHistoryRepository.findTopScoresByExamId(examId);
+    }
 }

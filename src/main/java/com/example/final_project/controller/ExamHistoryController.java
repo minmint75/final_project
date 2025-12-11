@@ -131,6 +131,12 @@ public class ExamHistoryController {
         return examHistoryService.getExamRanking();
     }
 
+    // Lấy xếp hạng học viên theo điểm số cho một bài thi cụ thể
+    @GetMapping("/ranking/{examId}/by-score")
+    public List<Object[]> getExamRankingByExamId(@PathVariable Long examId) {
+        return examHistoryService.getExamRankingByExamId(examId);
+    }
+
     private Long getAuthenticatedStudentId(Principal principal) {
         if (principal == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Không xác thực được người dùng");

@@ -36,6 +36,9 @@ public class Category {
     @Column(nullable = true)
     private String createdByName;
 
+    @Column(nullable = false)
+    private int totalQuestions = 0; // New field to store the count of questions
+
    @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
    private List<Question> questions = new ArrayList<>();
 

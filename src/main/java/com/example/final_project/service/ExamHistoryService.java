@@ -23,4 +23,6 @@ public interface ExamHistoryService {
     Integer countByStudentAndExam(Long studentId, Long examId);
 
     Integer countByStudentAndExamOnline(Long studentId, Long examOnlineId);
+
+    List<Object[]> getExamRankingByExamId(Long examId);
 }
