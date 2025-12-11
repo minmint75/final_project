@@ -48,20 +48,22 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
         if (isAdmin) {
             // For ADMIN, check for duplicate name among other admin-created exams
             examOnlineRepository.findByNameAndTeacherIsNull(request.getName().trim())
-                .ifPresent(e -> {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "An exam with this name already exists for ADMIN.");
-                });
+                    .ifPresent(e -> {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                "An exam with this name already exists for ADMIN.");
+                    });
         } else {
             // For TEACHER, find their record and check for duplicates under their name
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
             Long teacherId = userDetails.getId();
             teacher = teacherRepository.findById(teacherId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy giáo viên"));
-            
+
             examOnlineRepository.findByNameAndTeacher_TeacherId(request.getName().trim(), teacherId)
-                .ifPresent(e -> {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tên bài thi đã tồn tại trong danh sách của bạn");
-                });
+                    .ifPresent(e -> {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                "Tên bài thi đã tồn tại trong danh sách của bạn");
+                    });
         }
 
         Category category = categoryRepository.findById(request.getCategoryId())
@@ -69,7 +71,8 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
 
         List<Question> availableQuestions = questionRepository.findByDifficulty(request.getLevel().name());
         if (availableQuestions.size() < request.getNumberOfQuestions()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không đủ câu hỏi trong ngân hàng cho mức độ và số lượng đã chọn.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Không đủ câu hỏi trong ngân hàng cho mức độ và số lượng đã chọn.");
         }
         Set<Question> selectedQuestions = new HashSet<>();
         while (selectedQuestions.size() < request.getNumberOfQuestions()) {
@@ -101,7 +104,8 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
     public ExamOnlineResponse startExamOnline(Long examOnlineId, Authentication authentication) {
         ExamOnline exam = getOwnedExam(examOnlineId, authentication);
         if (exam.getStatus() != ExamStatus.PENDING) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bài thi đã bắt đầu hoặc đã kết thúc, không thể start.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Bài thi đã bắt đầu hoặc đã kết thúc, không thể start.");
         }
         exam.setStatus(ExamStatus.IN_PROGRESS);
 
@@ -110,8 +114,7 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
                 exam.getName(),
                 0,
                 new ArrayList<>(),
-                "START"
-        );
+                "START");
         messagingTemplate.convertAndSend("/topic/waiting-room/" + exam.getAccessCode(), notification);
 
         return mapToResponse(examOnlineRepository.save(exam));
@@ -161,22 +164,24 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
     public ExamOnlineResponse updateExamOnline(Long id, ExamOnlineRequest request, Authentication authentication) {
         ExamOnline exam = getOwnedExam(id, authentication);
         if (exam.getStatus() != ExamStatus.PENDING) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Chỉ được chỉnh sửa bài thi khi trạng thái là PENDING");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Chỉ được chỉnh sửa bài thi khi trạng thái là PENDING");
         }
-        
+
         if (exam.getTeacher() == null) { // Admin-created exam
-             examOnlineRepository.findByNameAndTeacherIsNull(request.getName().trim()).ifPresent(existing -> {
+            examOnlineRepository.findByNameAndTeacherIsNull(request.getName().trim()).ifPresent(existing -> {
                 if (!existing.getId().equals(id)) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tên bài thi đã tồn tại cho ADMIN");
                 }
             });
         } else { // Teacher-created exam
-            examOnlineRepository.findByNameAndTeacher_TeacherId(request.getName().trim(), exam.getTeacher().getTeacherId())
-                .ifPresent(existing -> {
-                    if (!existing.getId().equals(id)) {
-                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tên bài thi đã tồn tại");
-                    }
-                });
+            examOnlineRepository
+                    .findByNameAndTeacher_TeacherId(request.getName().trim(), exam.getTeacher().getTeacherId())
+                    .ifPresent(existing -> {
+                        if (!existing.getId().equals(id)) {
+                            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tên bài thi đã tồn tại");
+                        }
+                    });
         }
 
         Category category = categoryRepository.findById(request.getCategoryId())
@@ -189,7 +194,7 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
         exam.setSubmissionDeadline(request.getSubmissionDeadline());
         exam.setPassingScore(request.getPassingScore());
         exam.setMaxParticipants(request.getMaxParticipants());
-        
+
         List<Question> availableQuestions = questionRepository.findByDifficulty(request.getLevel().name());
         if (availableQuestions.size() < request.getNumberOfQuestions()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không đủ câu hỏi cho yêu cầu mới.");
@@ -208,7 +213,8 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
     public ExamOnlineResponse finishExamOnline(Long examOnlineId, Authentication authentication) {
         ExamOnline exam = getOwnedExam(examOnlineId, authentication);
         if (exam.getStatus() != ExamStatus.IN_PROGRESS) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Chỉ có thể kết thúc bài thi khi trạng thái đang IN_PROGRESS");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Chỉ có thể kết thúc bài thi khi trạng thái đang IN_PROGRESS");
         }
         exam.setStatus(ExamStatus.FINISHED);
         return mapToResponse(examOnlineRepository.save(exam));
@@ -249,11 +255,12 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
 
         List<WaitingRoomUserDto> participants = waitingRoomService.getParticipants(accessCode);
         if (participants != null && participants.size() >= examOnline.getMaxParticipants()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Exam has reached its maximum number of participants.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Exam has reached its maximum number of participants.");
         }
 
-
-        WaitingRoomUserDto userDto = new WaitingRoomUserDto(student.getStudentId(), student.getUsername(), student.getAvatar());
+        WaitingRoomUserDto userDto = new WaitingRoomUserDto(student.getStudentId(), student.getUsername(),
+                student.getAvatar());
         waitingRoomService.addUser(accessCode, userDto);
 
         broadcastParticipantUpdate(accessCode, userDto.getDisplayName() + " has joined the waiting room.");
@@ -264,14 +271,14 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
                 examOnline.getName(),
                 examOnline.getStatus(),
                 updatedParticipants.size(),
-                updatedParticipants
-        );
+                updatedParticipants);
     }
 
     @Override
     public ExamOnline findByAccessCode(String accessCode) {
         return examOnlineRepository.findByAccessCode(accessCode)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Exam with access code not found."));
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Exam with access code not found."));
     }
 
     @Override
@@ -298,7 +305,6 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You have already submitted this exam.");
         }
 
-
         List<QuestionTakeDto> questionDtos = examOnline.getQuestions().stream()
                 .map(this::mapQuestionToTakeDto)
                 .collect(Collectors.toList());
@@ -307,7 +313,8 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
                 .examId(examOnline.getId()) // Using online exam ID
                 .title(examOnline.getName())
                 .description("Online Exam")
-                .durationMinutes((int) java.time.Duration.between(java.time.LocalDateTime.now(), examOnline.getSubmissionDeadline()).toMinutes())
+                .durationMinutes((int) java.time.Duration
+                        .between(java.time.LocalDateTime.now(), examOnline.getSubmissionDeadline()).toMinutes())
                 .questions(questionDtos)
                 .build();
     }
@@ -321,10 +328,8 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
                 question.getId(),
                 question.getTitle(),
                 QuestionType.valueOf(question.getType().name()),
-                options
-        );
+                options);
     }
-
 
     @Override
     @Transactional
@@ -337,7 +342,8 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
         ExamOnline examOnline = findByAccessCode(submissionDto.getAccessCode());
 
         if (examOnline.getStatus() != ExamStatus.IN_PROGRESS) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Exam is not in progress or has already finished.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Exam is not in progress or has already finished.");
         }
 
         // Check if student already submitted
@@ -345,9 +351,9 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You have already submitted this exam.");
         }
 
-
         Map<Long, List<Long>> submittedAnswersMap = submissionDto.getAnswers().stream()
-                .collect(Collectors.toMap(StudentAnswerOnlineDto::getQuestionId, StudentAnswerOnlineDto::getAnswerOptionIds, (a,b) -> a));
+                .collect(Collectors.toMap(StudentAnswerOnlineDto::getQuestionId,
+                        StudentAnswerOnlineDto::getAnswerOptionIds, (a, b) -> a));
 
         int correctCount = 0;
         int totalQuestions = examOnline.getQuestions().size();
@@ -370,8 +376,8 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
         boolean passed = score >= examOnline.getPassingScore();
 
         // Find attempt number
-        int attemptNumber = examHistoryRepository.countByExamOnlineIdAndStudentStudentId(examOnline.getId(), studentId) + 1;
-
+        int attemptNumber = examHistoryRepository.countByExamOnlineIdAndStudentStudentId(examOnline.getId(), studentId)
+                + 1;
 
         ExamHistory history = ExamHistory.builder()
                 .student(student)
@@ -385,8 +391,30 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
                 .wrongCount(wrongCount)
                 .totalQuestions(totalQuestions)
                 .attemptNumber(attemptNumber)
-                .displayName(student.getUsername()) // or some other display name logic
+                .displayName(student.getUsername())
                 .build();
+
+        List<ExamHistoryDetail> details = new ArrayList<>();
+        for (Question question : examOnline.getQuestions()) {
+            List<Long> correctOptionIds = question.getAnswers().stream()
+                    .filter(Answer::isCorrect)
+                    .map(Answer::getId)
+                    .collect(Collectors.toList());
+
+            List<Long> submittedOptionIds = submittedAnswersMap.getOrDefault(question.getId(), Collections.emptyList());
+
+            for (Long answerId : submittedOptionIds) {
+                boolean isAnswerCorrect = correctOptionIds.contains(answerId);
+                ExamHistoryDetail detail = ExamHistoryDetail.builder()
+                        .examHistory(history)
+                        .questionId(question.getId())
+                        .answerId(answerId)
+                        .isCorrect(isAnswerCorrect)
+                        .build();
+                details.add(detail);
+            }
+        }
+        history.setDetails(details);
 
         examHistoryRepository.save(history);
 
@@ -405,7 +433,6 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
                 .build();
     }
 
-
     private void broadcastParticipantUpdate(String accessCode, String message) {
         ExamOnline examOnline = findByAccessCode(accessCode);
         List<WaitingRoomUserDto> participants = waitingRoomService.getParticipants(accessCode);
@@ -415,8 +442,7 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
                 examOnline.getName(),
                 participantCount,
                 participants,
-                message
-        );
+                message);
 
         messagingTemplate.convertAndSend("/topic/waiting-room/" + accessCode, notification);
     }
@@ -429,7 +455,7 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
     private ExamOnline getOwnedExam(Long examId, Authentication authentication) {
         ExamOnline exam = examOnlineRepository.findById(examId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy bài thi"));
-        
+
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
@@ -438,9 +464,10 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
         }
 
         if (exam.getTeacher() == null) {
-             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không có quyền truy cập bài thi này (dành cho admin).");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Bạn không có quyền truy cập bài thi này (dành cho admin).");
         }
-        
+
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         if (!exam.getTeacher().getTeacherId().equals(userDetails.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không có quyền truy cập bài thi này.");
@@ -454,7 +481,8 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
         do {
             code = String.format("%06d", secureRandom.nextInt(1_000_000));
             if (--tries == 0) {
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Không thể tạo mã tham dự duy nhất");
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Không thể tạo mã tham dự duy nhất");
             }
         } while (examOnlineRepository.findByAccessCode(code).isPresent());
         return code;
@@ -472,7 +500,7 @@ public class ExamOnlineServiceImpl implements ExamOnlineService {
         dto.setAccessCode(exam.getAccessCode());
         dto.setStatus(exam.getStatus());
         dto.setCreatedAt(exam.getCreatedAt());
-        
+
         if (exam.getTeacher() != null) {
             dto.setTeacherName(exam.getTeacher().getUsername());
         } else {
