@@ -9,12 +9,12 @@ import lombok.*;
 @AllArgsConstructor
 public class CategoryListDto {
 
-    @NotBlank
     private Long id;
     private String name;
     private String description;
     private String createdByRole;
     private String createdByName;
+    private String createdBy;
     private int questionCount;
 
     // @NotNull
