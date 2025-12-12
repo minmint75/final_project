@@ -60,6 +60,7 @@ public class EntityDtoMapper {
         dto.setDescription(category.getDescription());
         dto.setCreatedByRole(category.getCreatedByRole());
         dto.setCreatedByName(category.getCreatedByName());
+        dto.setCreatedBy(category.getCreatedBy());
         return dto;
     }
 
