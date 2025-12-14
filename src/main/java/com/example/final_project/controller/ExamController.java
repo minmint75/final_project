@@ -131,6 +131,12 @@ public class ExamController {
         return ResponseEntity.ok(examService.searchExams(searchRequest, pageable));
     }
 
+    @GetMapping("/{examId}/add-students")
+    public ResponseEntity<String> handleGetForAddStudents() {
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body("This endpoint is for adding students and requires a POST request.");
+    }
+
     @PostMapping("/{examId}/add-students")
     @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
     public ResponseEntity<ExamResponseDto> addAllowedStudents(
@@ -140,5 +146,15 @@ public class ExamController {
         Long userId = getAuthenticatedUserId(principal);
         ExamResponseDto exam = examService.addAllowedStudents(examId, request, userId);
         return ResponseEntity.ok(exam);
+    }
+
+    @GetMapping("/{examId}/authorized-students")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
+    public ResponseEntity<List<com.example.final_project.dto.StudentResponseDto>> getAllowedStudents(
+            @PathVariable Long examId,
+            Principal principal) {
+        Long userId = getAuthenticatedUserId(principal);
+        List<com.example.final_project.dto.StudentResponseDto> students = examService.getAllowedStudents(examId, userId);
+        return ResponseEntity.ok(students);
     }
 }
