@@ -29,4 +29,6 @@ public class ExamResponseDto {
     private String status;
     private String code;
     private String url;
+    private boolean isPrivate;
+    private boolean isAuthorized;
 }
