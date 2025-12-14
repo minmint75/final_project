@@ -30,7 +30,7 @@ public class Exam {
     private ExamLevel examLevel;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private ExamStatus status = ExamStatus.DRAFT;
 
     @Column(name = "duration_minutes", nullable = false)
