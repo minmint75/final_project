@@ -59,6 +59,20 @@ public class Exam {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
+    @Column(name = "code", unique = true)
+    private String code;
+
+    @Column(name = "url", length = 255)
+    private String url;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "exam_allowed_students",
+            joinColumns = @JoinColumn(name = "exam_id"),
+            inverseJoinColumns = @JoinColumn(name = "student_id")
+    )
+    private List<Student> allowedStudents;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
