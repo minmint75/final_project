@@ -130,4 +130,15 @@ public class ExamController {
                 org.springframework.data.domain.Sort.by("createdAt").descending());
         return ResponseEntity.ok(examService.searchExams(searchRequest, pageable));
     }
+
+    @PostMapping("/{examId}/add-students")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
+    public ResponseEntity<ExamResponseDto> addAllowedStudents(
+            @PathVariable Long examId,
+            @RequestBody com.example.final_project.dto.AllowedStudentsRequest request,
+            Principal principal) {
+        Long userId = getAuthenticatedUserId(principal);
+        ExamResponseDto exam = examService.addAllowedStudents(examId, request, userId);
+        return ResponseEntity.ok(exam);
+    }
 }
