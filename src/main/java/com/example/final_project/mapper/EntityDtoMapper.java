@@ -72,6 +72,15 @@ public class EntityDtoMapper {
                 teacher.getAvatar());
     }
 
+    public StudentResponseDto toStudentResponseDto(Student student) {
+        if (student == null) {
+            return null;
+        }
+        return new StudentResponseDto(student.getStudentId(), student.getUsername(), student.getEmail(),
+                student.getAvatar());
+    }
+
+
     public ExamQuestionResponseDto toExamQuestionResponseDto(ExamQuestion examQuestion) {
         if (examQuestion == null) {
             return null;
@@ -107,6 +116,8 @@ public class EntityDtoMapper {
                 .questionCount(examQuestionDtos.size())
                 .examLevel(exam != null && exam.getExamLevel() != null ? exam.getExamLevel().name() : null)
                 .status(exam != null && exam.getStatus() != null ? exam.getStatus().name() : null)
+                .code(exam.getCode())
+                .url(exam.getUrl())
                 .build();
     }
 

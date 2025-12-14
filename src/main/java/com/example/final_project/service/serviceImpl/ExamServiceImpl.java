@@ -1,5 +1,6 @@
 package com.example.final_project.service.serviceImpl;
 
+import com.example.final_project.dto.AllowedStudentsRequest;
 import com.example.final_project.dto.ExamRequestDto;
 import com.example.final_project.dto.ExamResponseDto;
 import com.example.final_project.dto.ExamSearchRequest;
@@ -7,6 +8,7 @@ import com.example.final_project.entity.*;
 import com.example.final_project.mapper.EntityDtoMapper;
 import com.example.final_project.repository.*;
 import com.example.final_project.service.ExamService;
+import com.example.final_project.util.CodeGenerator;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,6 +24,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -36,6 +39,8 @@ public class ExamServiceImpl implements ExamService {
     private final ExamQuestionRepository examQuestionRepository;
     private final CategoryRepository categoryRepository;
     private final EntityDtoMapper entityDtoMapper;
+    private final CodeGenerator codeGenerator;
+    private final StudentRepository studentRepository;
 
     @Override
     @Transactional
@@ -66,10 +71,15 @@ public class ExamServiceImpl implements ExamService {
                 .endTime(dto.getEndTime())
                 .teacher(teacher)
                 .category(category)
-                .category(category)
                 .examLevel(dto.getExamLevel())
                 .status(dto.getStatus() != null ? dto.getStatus() : ExamStatus.DRAFT)
                 .build();
+
+        if (exam.getStatus() == ExamStatus.PRIVATE) {
+            String code = codeGenerator.generateUniqueCode();
+            exam.setCode(code);
+            exam.setUrl(codeGenerator.generateUrl(code));
+        }
 
         exam = examRepository.save(exam);
 
@@ -123,6 +133,12 @@ public class ExamServiceImpl implements ExamService {
         exam.setExamLevel(dto.getExamLevel());
         if (dto.getStatus() != null) {
             exam.setStatus(dto.getStatus());
+        }
+
+        if (exam.getStatus() == ExamStatus.PRIVATE && exam.getCode() == null) {
+            String code = codeGenerator.generateUniqueCode();
+            exam.setCode(code);
+            exam.setUrl(codeGenerator.generateUrl(code));
         }
 
         if (exam.getExamQuestions() == null) {
@@ -240,5 +256,92 @@ public class ExamServiceImpl implements ExamService {
         };
 
         return examRepository.findAll(spec, pageable).map(entityDtoMapper::toExamResponseDto);
+    }
+
+    @Override
+    @Transactional
+    public ExamResponseDto addAllowedStudents(Long examId, AllowedStudentsRequest request, Long userId) {
+        Exam exam = examRepository.findById(examId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Bài thi không tồn tại"));
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+
+        if (!isAdmin) {
+            if (exam.getTeacher() == null || !exam.getTeacher().getTeacherId().equals(userId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không có quyền chỉnh sửa bài thi này");
+            }
+        }
+
+        if (exam.getStatus() != ExamStatus.PRIVATE) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Chỉ có thể thêm học viên vào bài thi ở trạng thái PRIVATE");
+        }
+
+        List<Student> students = studentRepository.findByEmailIn(request.getStudentEmails());
+        if (students.size() != request.getStudentEmails().size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Một hoặc nhiều email học viên không tồn tại");
+        }
+
+        List<Student> allowedStudents = exam.getAllowedStudents();
+        if (allowedStudents == null) {
+            allowedStudents = new ArrayList<>();
+        }
+        allowedStudents.addAll(students);
+        exam.setAllowedStudents(allowedStudents.stream().distinct().collect(Collectors.toList()));
+
+        Exam savedExam = examRepository.save(exam);
+        return entityDtoMapper.toExamResponseDto(savedExam);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<com.example.final_project.dto.StudentResponseDto> getAllowedStudents(Long examId, Long userId) {
+        Exam exam = examRepository.findById(examId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Bài thi không tồn tại"));
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+
+        if (!isAdmin) {
+            if (exam.getTeacher() == null || !exam.getTeacher().getTeacherId().equals(userId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không có quyền xem danh sách này");
+            }
+        }
+
+        if (exam.getAllowedStudents() == null) {
+            return Collections.emptyList();
+        }
+
+        return exam.getAllowedStudents().stream()
+                .map(entityDtoMapper::toStudentResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public ExamResponseDto joinOfflineExamByCode(String code, Long studentId) {
+        Exam exam = examRepository.findByCode(code)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mã bài thi không hợp lệ"));
+
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Học viên không tồn tại"));
+
+        // Only allow joining PUBLISHED or PRIVATE exams
+        if (exam.getStatus() != ExamStatus.PUBLISHED && exam.getStatus() != ExamStatus.PRIVATE) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bài thi không khả dụng để tham gia");
+        }
+
+        // If private, check if student is allowed or add them
+        if (exam.getStatus() == ExamStatus.PRIVATE) {
+            if (exam.getAllowedStudents() == null) {
+                exam.setAllowedStudents(new ArrayList<>());
+            }
+            if (!exam.getAllowedStudents().contains(student)) {
+                exam.getAllowedStudents().add(student);
+                examRepository.save(exam); // Save to update allowed students list
+            }
+        }
+
+        return entityDtoMapper.toExamResponseDto(exam);
     }
 }

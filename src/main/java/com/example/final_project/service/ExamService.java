@@ -24,4 +24,10 @@ public interface ExamService {
     ExamResponseDto getExamForStudent(Long examId);
 
     Page<ExamResponseDto> searchExams(ExamSearchRequest searchRequest, Pageable pageable);
+
+    ExamResponseDto addAllowedStudents(Long examId, com.example.final_project.dto.AllowedStudentsRequest request, Long teacherId);
+
+    List<com.example.final_project.dto.StudentResponseDto> getAllowedStudents(Long examId, Long userId);
+
+    ExamResponseDto joinOfflineExamByCode(String code, Long studentId);
 }

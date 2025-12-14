@@ -27,4 +27,6 @@ public class ExamResponseDto {
     private Integer questionCount;
     private String examLevel;
     private String status;
+    private String code;
+    private String url;
 }

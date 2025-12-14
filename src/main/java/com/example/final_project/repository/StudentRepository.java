@@ -15,6 +15,7 @@ import java.util.Optional;
 public interface StudentRepository extends JpaRepository<Student, Long> {
     Optional<Student> findByUsername(String username);
     Optional<Student> findByEmail(String email);
+    List<Student> findByEmailIn(List<String> emails);
     Page<Student> findByEmail(String email, Pageable pageable);
 
     @Query("SELECT t FROM Student t WHERE " +
