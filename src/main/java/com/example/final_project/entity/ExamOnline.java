@@ -40,7 +40,7 @@ public class ExamOnline {
     private String accessCode; // Mã tham dự (chuỗi 6 số)
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private ExamStatus status; // Trạng thái bài thi (PENDING, IN_PROGRESS, FINISHED)
 
     @ManyToOne(fetch = FetchType.LAZY)
