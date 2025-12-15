@@ -10,7 +10,8 @@ COPY src ./src
 RUN mvn -q ${MAVEN_ARGS} -DskipTests clean package
 
 # ====== Run stage ======
-FROM eclipse-temurin:17-jre
+
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 # Đặt timezone nếu cần
 ENV TZ=Asia/Ho_Chi_Minh
