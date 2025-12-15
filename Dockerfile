@@ -5,8 +5,9 @@ WORKDIR /app
 ENV MAVEN_OPTS="-Dfile.encoding=UTF-8 -Xmx1024m"
 ENV MAVEN_ARGS="--no-transfer-progress"
 COPY pom.xml .
+RUN mvn -q ${MAVEN_ARGS} -DskipTests dependency:go-offline
 COPY src ./src
-RUN mvn clean package -Dmaven.test.skip=true
+RUN mvn -q ${MAVEN_ARGS} -DskipTests clean package
 
 # ====== Run stage ======
 FROM eclipse-temurin:17-jre
