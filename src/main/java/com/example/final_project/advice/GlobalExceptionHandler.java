@@ -1,6 +1,7 @@
 package com.example.final_project.advice;
 
 import com.example.final_project.exception.AccountLockedException;
+import com.example.final_project.exception.AccountNotApprovedException;
 import org.springframework.http.*;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +42,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccountLockedException.class)
     public ResponseEntity<?> handleAccountLocked(AccountLockedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(AccountNotApprovedException.class)
+    public ResponseEntity<?> handleAccountNotApproved(AccountNotApprovedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
     }
 

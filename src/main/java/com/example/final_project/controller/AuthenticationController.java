@@ -3,6 +3,7 @@ package com.example.final_project.controller;
 import com.example.final_project.dto.AuthenticationRequest;
 import com.example.final_project.dto.AuthenticationResponse;
 import com.example.final_project.exception.AccountLockedException;
+import com.example.final_project.exception.AccountNotApprovedException;
 import com.example.final_project.service.CustomUserDetailsService;
 import com.example.final_project.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,21 +31,26 @@ public class AuthenticationController {
     private JwtUtil jwtUtil;
 
     @PostMapping("/login")
-    public ResponseEntity<?> createAuthenticationToken(@RequestBody AuthenticationRequest authenticationRequest) throws Exception {
+    public ResponseEntity<?> createAuthenticationToken(@RequestBody AuthenticationRequest authenticationRequest)
+            throws Exception {
 
         try {
             try {
                 userDetailsService.loadUserByUsername(authenticationRequest.getEmail());
             } catch (AccountLockedException e) {
-                throw e; 
+                throw e;
+            } catch (AccountNotApprovedException e) {
+                throw e;
             }
 
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(authenticationRequest.getEmail(), authenticationRequest.getPassword())
-            );
+                    new UsernamePasswordAuthenticationToken(authenticationRequest.getEmail(),
+                            authenticationRequest.getPassword()));
         } catch (BadCredentialsException e) {
             throw new BadCredentialsException("Email hoặc mật khẩu không đúng");
         } catch (AccountLockedException e) {
+            throw e;
+        } catch (AccountNotApprovedException e) {
             throw e;
         }
 
