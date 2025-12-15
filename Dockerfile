@@ -1,6 +1,6 @@
 
 # ====== Build stage ======
-FROM maven:3.9.6-eclipse-temurin-17 AS build
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
 ENV MAVEN_OPTS="-Dfile.encoding=UTF-8 -Xmx1024m"
 ENV MAVEN_ARGS="--no-transfer-progress"
