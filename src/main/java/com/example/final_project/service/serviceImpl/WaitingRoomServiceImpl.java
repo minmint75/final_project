@@ -37,7 +37,7 @@ public class WaitingRoomServiceImpl implements WaitingRoomService {
 
     @Override
     public List<WaitingRoomUserDto> getParticipants(String accessCode) {
-        return waitingRooms.get(accessCode);
+        return waitingRooms.getOrDefault(accessCode, new CopyOnWriteArrayList<>());
     }
 
     @Override

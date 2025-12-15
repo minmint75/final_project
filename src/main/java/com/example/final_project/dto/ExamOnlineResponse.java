@@ -10,14 +10,16 @@ import java.time.LocalDateTime;
 public class ExamOnlineResponse {
     private Long id;
     private String name;
-    private Integer numberOfQuestions;
+    private Integer actualQuestionCount; // Số câu hỏi thực tế (từ questions.size())
     private ExamLevel level;
-    private LocalDateTime submissionDeadline;
+    private Integer durationMinutes; // Thời gian làm bài (phút)
     private Integer passingScore;
     private Integer maxParticipants;
     private String accessCode;
     private ExamStatus status;
     private String teacherName;
+    private LocalDateTime startedAt;
+    private LocalDateTime finishedAt;
     private LocalDateTime createdAt;
     private Long categoryId;
     private String categoryName;

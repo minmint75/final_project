@@ -3,6 +3,7 @@ package com.example.final_project.controller;
 import com.example.final_project.dto.*;
 import com.example.final_project.service.CustomUserDetails;
 import com.example.final_project.service.ExamOnlineService;
+import com.example.final_project.entity.ExamOnline;
 import com.example.final_project.util.QrCodeUtil;
 import com.google.zxing.WriterException;
 import jakarta.validation.Valid;
@@ -29,9 +30,46 @@ public class ExamOnlineController {
 
     @PostMapping("/create")
     @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
-    public ResponseEntity<ExamOnlineResponse> createExamOnline(@Valid @RequestBody ExamOnlineRequest request, Principal principal) {
+    public ResponseEntity<ExamOnlineResponse> createExamOnline(@Valid @RequestBody ExamOnlineRequest request,
+            Principal principal) {
         ExamOnlineResponse response = examOnlineService.createExamOnline(request, (Authentication) principal);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/{id}/questions")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
+    public ResponseEntity<ExamOnlineResponse> addQuestionsToExam(@PathVariable Long id,
+            @Valid @RequestBody ExamOnlineAddQuestionsRequest request, Principal principal) {
+        ExamOnlineResponse response = examOnlineService.addQuestionsToExam(id, request, (Authentication) principal);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/start")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
+    public ResponseEntity<ExamOnlineResponse> startExamOnline(@PathVariable Long id, Principal principal) {
+        ExamOnlineResponse response = examOnlineService.startExamOnline(id, (Authentication) principal);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/begin")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
+    public ResponseEntity<ExamOnlineResponse> beginExam(@PathVariable Long id, Principal principal) {
+        ExamOnlineResponse response = examOnlineService.beginExam(id, (Authentication) principal);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/live-progress")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
+    public ResponseEntity<List<LiveProgressDto>> getLiveProgress(@PathVariable Long id, Principal principal) {
+        List<LiveProgressDto> progress = examOnlineService.getLiveProgress(id, (Authentication) principal);
+        return ResponseEntity.ok(progress);
+    }
+
+    @GetMapping("/{id}/leaderboard")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
+    public ResponseEntity<LeaderboardDto> getLeaderboard(@PathVariable Long id, Principal principal) {
+        LeaderboardDto leaderboard = examOnlineService.getLeaderboard(id, (Authentication) principal);
+        return ResponseEntity.ok(leaderboard);
     }
 
     @PostMapping("/join/{accessCode}")
@@ -50,7 +88,8 @@ public class ExamOnlineController {
 
     @PostMapping("/submit")
     @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<ExamResultResponseDto> submitExamOnline(@Valid @RequestBody ExamSubmissionOnlineDto submissionDto, Principal principal) {
+    public ResponseEntity<ExamResultResponseDto> submitExamOnline(
+            @Valid @RequestBody ExamSubmissionOnlineDto submissionDto, Principal principal) {
         ExamResultResponseDto result = examOnlineService.submitOnlineExam(submissionDto, (Authentication) principal);
         return ResponseEntity.ok(result);
     }
@@ -61,6 +100,13 @@ public class ExamOnlineController {
         String url = examOnlineService.getWaitingRoomUrl(accessCode);
         byte[] qrCode = qrCodeUtil.generateQrCode(url, 250, 250);
         return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(qrCode);
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
+    public ResponseEntity<ExamOnlineResponse> getOnlineExamById(@PathVariable Long id, Principal principal) {
+        ExamOnlineResponse exam = examOnlineService.getExamOnlineById(id, (Authentication) principal);
+        return ResponseEntity.ok(exam);
     }
 
     @GetMapping("/my")
@@ -89,15 +135,9 @@ public class ExamOnlineController {
 
     @PutMapping("/{id}/update")
     @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
-    public ResponseEntity<ExamOnlineResponse> updateExamOnline(@PathVariable Long id, @Valid @RequestBody ExamOnlineRequest request, Principal principal) {
+    public ResponseEntity<ExamOnlineResponse> updateExamOnline(@PathVariable Long id,
+            @Valid @RequestBody ExamOnlineRequest request, Principal principal) {
         ExamOnlineResponse response = examOnlineService.updateExamOnline(id, request, (Authentication) principal);
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/{id}/start")
-    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
-    public ResponseEntity<ExamOnlineResponse> startExamOnline(@PathVariable Long id, Principal principal) {
-        ExamOnlineResponse response = examOnlineService.startExamOnline(id, (Authentication) principal);
         return ResponseEntity.ok(response);
     }
 
@@ -106,6 +146,13 @@ public class ExamOnlineController {
     public ResponseEntity<ExamOnlineResponse> finishExamOnline(@PathVariable Long id, Principal principal) {
         ExamOnlineResponse response = examOnlineService.finishExamOnline(id, (Authentication) principal);
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteExamOnlineById(@PathVariable Long id, Principal principal) {
+        examOnlineService.deleteExamOnlineById(id, (Authentication) principal);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}/delete")
@@ -120,6 +167,14 @@ public class ExamOnlineController {
     public ResponseEntity<ExamOnlineResultsDto> getExamOnlineResults(@PathVariable Long id, Principal principal) {
         ExamOnlineResultsDto results = examOnlineService.getExamOnlineResults(id, (Authentication) principal);
         return ResponseEntity.ok(results);
+    }
+
+    @GetMapping("/info/{accessCode}")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('ADMIN')")
+    public ResponseEntity<ExamOnlineResponse> getExamByAccessCode(@PathVariable String accessCode,
+            Principal principal) {
+        ExamOnline exam = examOnlineService.findByAccessCode(accessCode);
+        return ResponseEntity.ok(examOnlineService.getExamOnlineById(exam.getId(), (Authentication) principal));
     }
 
     private Long getAuthenticatedUserId(Principal principal) {

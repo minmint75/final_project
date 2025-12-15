@@ -13,4 +13,5 @@ public class ExamSearchRequest {
     private com.example.final_project.entity.ExamLevel examLevel;
     private Long teacherId;
     private com.example.final_project.entity.ExamStatus status;
+    private boolean includeAuthorizedPrivate = false;
 }

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ExamRepository extends JpaRepository<Exam, Long>, JpaSpecificationExecutor<Exam> {
 
@@ -16,6 +17,8 @@ public interface ExamRepository extends JpaRepository<Exam, Long>, JpaSpecificat
     boolean hasSubmissions(Long examId);
 
     boolean existsByTitle(String title);
+
+    Optional<Exam> findByCode(String code);
 
     void deleteByExamId(Long examId);
 }

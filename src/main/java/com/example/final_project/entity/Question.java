@@ -44,6 +44,12 @@ public class Question {
     @Column(name = "created_by", nullable = false)
     private String createdBy; // có thể lưu username hoặc id dưới dạng string
 
+    @Column(name = "created_by_name", nullable = true)
+    private String createdByName;
+
+    @Column(name = "created_by_role", nullable = true)
+    private String createdByRole;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

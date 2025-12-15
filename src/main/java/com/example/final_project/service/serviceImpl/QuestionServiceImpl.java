@@ -30,9 +30,7 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public QuestionResponseDto createQuestion(QuestionCreateDto dto) {
         QuestionType type = QuestionType.valueOf(dto.getType());
-        if (type != QuestionType.TRUE_FALSE) {
-            validateAnswersByType(type, dto.getAnswers());
-        }
+        validateAnswersByType(type, dto.getAnswers());
 
         Category category = categoryRepo.findById(dto.getCategoryId())
                 .orElseThrow(() -> new NoSuchElementException("Danh mục không tồn tại"));
@@ -44,21 +42,33 @@ public class QuestionServiceImpl implements QuestionService {
         q.setDifficulty(dto.getDifficulty());
         q.setCategory(category);
         q.setCreatedBy(dto.getCreatedBy());
+        q.setCreatedByName(resolveName(dto.getCreatedBy()));
+        q.setCreatedByRole(resolveRole(dto.getCreatedBy()));
 
         if (type == QuestionType.TRUE_FALSE) {
-            q.setCorrectAnswer(dto.getCorrectAnswer());
-            List<Answer> answers = new ArrayList<>();
-            Answer trueAnswer = new Answer();
-            trueAnswer.setText("True");
-            trueAnswer.setCorrect("True".equalsIgnoreCase(dto.getCorrectAnswer()));
-            trueAnswer.setQuestion(q);
-            answers.add(trueAnswer);
+            String currentCorrectAnswerText = dto.getAnswers().stream()
+                    .filter(a -> Boolean.TRUE.equals(a.getCorrect()))
+                    .map(AnswerDto::getText)
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Đáp án đúng cho TRUE_FALSE phải có một đáp án đúng được chọn.")); // This should not happen if validateAnswersByType passed.
 
-            Answer falseAnswer = new Answer();
-            falseAnswer.setText("False");
-            falseAnswer.setCorrect("False".equalsIgnoreCase(dto.getCorrectAnswer()));
-            falseAnswer.setQuestion(q);
-            answers.add(falseAnswer);
+            // Additional check for the text value, as validateAnswersByType no longer does this.
+            if (!"True".equalsIgnoreCase(currentCorrectAnswerText) && !"False".equalsIgnoreCase(currentCorrectAnswerText)
+                    && !"Đúng".equalsIgnoreCase(currentCorrectAnswerText) && !"Sai".equalsIgnoreCase(currentCorrectAnswerText)) {
+                throw new IllegalArgumentException("Đáp án đúng cho TRUE_FALSE phải là 'True', 'False', 'Đúng' hoặc 'Sai'.");
+            }
+
+            q.setCorrectAnswer(currentCorrectAnswerText); // e.g., "Đúng"
+
+            List<Answer> answers = new ArrayList<>();
+            for (AnswerDto answerDto : dto.getAnswers()) { // Iterate through the DTO's answers
+                Answer answer = new Answer();
+                answer.setText(answerDto.getText()); // Use the text from DTO, e.g., "Đúng" or "Sai"
+                // Set correct based on whether its text matches the currentCorrectAnswerText
+                answer.setCorrect(answerDto.getText().equalsIgnoreCase(currentCorrectAnswerText));
+                answer.setQuestion(q);
+                answers.add(answer);
+            }
             q.setAnswers(answers);
         } else {
             List<Answer> answers = dto.getAnswers().stream().map(aDto -> {
@@ -79,7 +89,12 @@ public class QuestionServiceImpl implements QuestionService {
         }
 
         Question savedQuestion = questionRepo.save(q);
-        return populateCreatorInfo(entityDtoMapper.toQuestionResponseDto(savedQuestion));
+
+        // Increment totalQuestions for the associated category
+        category.setTotalQuestions(category.getTotalQuestions() + 1);
+        categoryRepo.save(category);
+
+        return entityDtoMapper.toQuestionResponseDto(savedQuestion);
     }
 
     // GET SINGLE
@@ -133,12 +148,12 @@ public class QuestionServiceImpl implements QuestionService {
             throw new SecurityException("Không có quyền cập nhật câu hỏi này.");
         }
 
-        QuestionType type = QuestionType.valueOf(dto.getType());
-        if (type != QuestionType.TRUE_FALSE) {
-            validateAnswersByType(type, dto.getAnswers());
-        }
+        Category oldCategory = q.getCategory(); // Get the current category of the question
 
-        Category category = categoryRepo.findById(dto.getCategoryId())
+        QuestionType type = QuestionType.valueOf(dto.getType());
+        validateAnswersByType(type, dto.getAnswers());
+
+        Category newCategory = categoryRepo.findById(dto.getCategoryId()) // This is the NEW category
                 .orElseThrow(() -> new NoSuchElementException("Danh mục không tồn tại"));
 
         q.setTitle(dto.getTitle());
@@ -147,23 +162,45 @@ public class QuestionServiceImpl implements QuestionService {
             q.setVisibility(QuestionVisibility.valueOf(dto.getVisibility().toUpperCase()));
         }
         q.setDifficulty(dto.getDifficulty());
-        q.setCategory(category);
+        q.setCategory(newCategory); // Set the new category
+
+        // Check if category has changed
+        if (!oldCategory.getId().equals(newCategory.getId())) {
+            // Decrement old category count
+            oldCategory.setTotalQuestions(oldCategory.getTotalQuestions() - 1);
+            categoryRepo.save(oldCategory);
+
+            // Increment new category count
+            newCategory.setTotalQuestions(newCategory.getTotalQuestions() + 1);
+            categoryRepo.save(newCategory);
+        }
 
         // Replace answers
         q.getAnswers().clear();
         if (type == QuestionType.TRUE_FALSE) {
-            q.setCorrectAnswer(dto.getCorrectAnswer());
-            Answer trueAnswer = new Answer();
-            trueAnswer.setText("True");
-            trueAnswer.setCorrect("True".equalsIgnoreCase(dto.getCorrectAnswer()));
-            trueAnswer.setQuestion(q);
-            q.getAnswers().add(trueAnswer);
+            String currentCorrectAnswerText = dto.getAnswers().stream()
+                    .filter(a -> Boolean.TRUE.equals(a.getCorrect()))
+                    .map(AnswerDto::getText)
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Đáp án đúng cho TRUE_FALSE phải có một đáp án đúng được chọn.")); // This should not happen if validateAnswersByType passed.
 
-            Answer falseAnswer = new Answer();
-            falseAnswer.setText("False");
-            falseAnswer.setCorrect("False".equalsIgnoreCase(dto.getCorrectAnswer()));
-            falseAnswer.setQuestion(q);
-            q.getAnswers().add(falseAnswer);
+            // Additional check for the text value, as validateAnswersByType no longer does this.
+            if (!"True".equalsIgnoreCase(currentCorrectAnswerText) && !"False".equalsIgnoreCase(currentCorrectAnswerText)
+                    && !"Đúng".equalsIgnoreCase(currentCorrectAnswerText) && !"Sai".equalsIgnoreCase(currentCorrectAnswerText)) {
+                throw new IllegalArgumentException("Đáp án đúng cho TRUE_FALSE phải là 'True', 'False', 'Đúng' hoặc 'Sai'.");
+            }
+
+            q.setCorrectAnswer(currentCorrectAnswerText); // e.g., "Đúng"
+
+            // q.getAnswers().clear() was called before this if block, so directly add to it
+            for (AnswerDto answerDto : dto.getAnswers()) { // Iterate through the DTO's answers
+                Answer answer = new Answer();
+                answer.setText(answerDto.getText()); // Use the text from DTO, e.g., "Đúng" or "Sai"
+                // Set correct based on whether its text matches the currentCorrectAnswerText
+                answer.setCorrect(answerDto.getText().equalsIgnoreCase(currentCorrectAnswerText));
+                answer.setQuestion(q);
+                q.getAnswers().add(answer);
+            }
         } else {
             List<Answer> newAnswers = dto.getAnswers().stream().map(aDto -> {
                 Answer a = new Answer();
@@ -183,7 +220,7 @@ public class QuestionServiceImpl implements QuestionService {
         }
 
         Question updatedQuestion = questionRepo.save(q);
-        return populateCreatorInfo(entityDtoMapper.toQuestionResponseDto(updatedQuestion));
+        return entityDtoMapper.toQuestionResponseDto(updatedQuestion);
     }
 
     // DELETE
@@ -203,6 +240,11 @@ public class QuestionServiceImpl implements QuestionService {
         if (examQuestionRepo.existsByQuestionId(id)) {
             throw new IllegalStateException("Không thể xóa câu hỏi đã được chọn vào bài thi.");
         }
+        // Decrement totalQuestions for the associated category
+        Category category = q.getCategory();
+        category.setTotalQuestions(category.getTotalQuestions() - 1);
+        categoryRepo.save(category);
+
         questionRepo.delete(q);
     }
 
@@ -211,12 +253,12 @@ public class QuestionServiceImpl implements QuestionService {
     public QuestionResponseDto updateQuestionAsAdmin(Long id, QuestionUpdateDto dto) {
         Question q = questionRepo.findById(id).orElseThrow(() -> new NoSuchElementException("Câu hỏi không tồn tại"));
 
-        QuestionType type = QuestionType.valueOf(dto.getType());
-        if (type != QuestionType.TRUE_FALSE) {
-            validateAnswersByType(type, dto.getAnswers());
-        }
+        Category oldCategory = q.getCategory(); // Get the current category of the question
 
-        Category category = categoryRepo.findById(dto.getCategoryId())
+        QuestionType type = QuestionType.valueOf(dto.getType());
+        validateAnswersByType(type, dto.getAnswers());
+
+        Category newCategory = categoryRepo.findById(dto.getCategoryId()) // This is the NEW category
                 .orElseThrow(() -> new NoSuchElementException("Danh mục không tồn tại"));
 
         q.setTitle(dto.getTitle());
@@ -225,23 +267,45 @@ public class QuestionServiceImpl implements QuestionService {
             q.setVisibility(QuestionVisibility.valueOf(dto.getVisibility().toUpperCase()));
         }
         q.setDifficulty(dto.getDifficulty());
-        q.setCategory(category);
+        q.setCategory(newCategory); // Set the new category
+
+        // Check if category has changed
+        if (!oldCategory.getId().equals(newCategory.getId())) {
+            // Decrement old category count
+            oldCategory.setTotalQuestions(oldCategory.getTotalQuestions() - 1);
+            categoryRepo.save(oldCategory);
+
+            // Increment new category count
+            newCategory.setTotalQuestions(newCategory.getTotalQuestions() + 1);
+            categoryRepo.save(newCategory);
+        }
 
         // Replace answers
         q.getAnswers().clear();
         if (type == QuestionType.TRUE_FALSE) {
-            q.setCorrectAnswer(dto.getCorrectAnswer());
-            Answer trueAnswer = new Answer();
-            trueAnswer.setText("True");
-            trueAnswer.setCorrect("True".equalsIgnoreCase(dto.getCorrectAnswer()));
-            trueAnswer.setQuestion(q);
-            q.getAnswers().add(trueAnswer);
+            String currentCorrectAnswerText = dto.getAnswers().stream()
+                    .filter(a -> Boolean.TRUE.equals(a.getCorrect()))
+                    .map(AnswerDto::getText)
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Đáp án đúng cho TRUE_FALSE phải có một đáp án đúng được chọn.")); // This should not happen if validateAnswersByType passed.
 
-            Answer falseAnswer = new Answer();
-            falseAnswer.setText("False");
-            falseAnswer.setCorrect("False".equalsIgnoreCase(dto.getCorrectAnswer()));
-            falseAnswer.setQuestion(q);
-            q.getAnswers().add(falseAnswer);
+            // Additional check for the text value, as validateAnswersByType no longer does this.
+            if (!"True".equalsIgnoreCase(currentCorrectAnswerText) && !"False".equalsIgnoreCase(currentCorrectAnswerText)
+                    && !"Đúng".equalsIgnoreCase(currentCorrectAnswerText) && !"Sai".equalsIgnoreCase(currentCorrectAnswerText)) {
+                throw new IllegalArgumentException("Đáp án đúng cho TRUE_FALSE phải là 'True', 'False', 'Đúng' hoặc 'Sai'.");
+            }
+
+            q.setCorrectAnswer(currentCorrectAnswerText); // e.g., "Đúng"
+
+            // q.getAnswers().clear() was called before this if block, so directly add to it
+            for (AnswerDto answerDto : dto.getAnswers()) { // Iterate through the DTO's answers
+                Answer answer = new Answer();
+                answer.setText(answerDto.getText()); // Use the text from DTO, e.g., "Đúng" or "Sai"
+                // Set correct based on whether its text matches the currentCorrectAnswerText
+                answer.setCorrect(answerDto.getText().equalsIgnoreCase(currentCorrectAnswerText));
+                answer.setQuestion(q);
+                q.getAnswers().add(answer);
+            }
         } else {
             List<Answer> newAnswers = dto.getAnswers().stream().map(aDto -> {
                 Answer a = new Answer();
@@ -261,7 +325,7 @@ public class QuestionServiceImpl implements QuestionService {
         }
 
         Question updatedQuestion = questionRepo.save(q);
-        return populateCreatorInfo(entityDtoMapper.toQuestionResponseDto(updatedQuestion));
+        return entityDtoMapper.toQuestionResponseDto(updatedQuestion);
     }
 
     @Override
@@ -273,6 +337,11 @@ public class QuestionServiceImpl implements QuestionService {
         }
 
         // Admin can delete any question - no ownership check
+        // Decrement totalQuestions for the associated category
+        Category category = q.getCategory();
+        category.setTotalQuestions(category.getTotalQuestions() - 1);
+        categoryRepo.save(category);
+
         questionRepo.delete(q);
     }
 
@@ -324,6 +393,11 @@ public class QuestionServiceImpl implements QuestionService {
             case MULTIPLE:
                 if (correctCount < 2)
                     throw new IllegalArgumentException("Loại MULTIPLE phải có ít nhất 2 đáp án đúng.");
+                break;
+            case TRUE_FALSE:
+                if (correctCount != 1) {
+                    throw new IllegalArgumentException("Loại TRUE_FALSE phải có đúng 1 đáp án đúng.");
+                }
                 break;
         }
     }

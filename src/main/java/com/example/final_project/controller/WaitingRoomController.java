@@ -18,6 +18,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.http.ResponseEntity;
 import java.util.List;
 import java.util.Objects;
 
@@ -27,6 +30,11 @@ public class WaitingRoomController {
     private final WaitingRoomService waitingRoomService;
     private final SimpMessagingTemplate messagingTemplate;
     private final ExamOnlineService examOnlineService;
+
+    @GetMapping("/api/waiting-room/{accessCode}/participants")
+    public ResponseEntity<List<WaitingRoomUserDto>> getParticipants(@PathVariable String accessCode) {
+        return ResponseEntity.ok(waitingRoomService.getParticipants(accessCode));
+    }
 
     @MessageMapping("/waiting-room/{accessCode}/leave")
     public void leaveWaitingRoom(@DestinationVariable String accessCode, SimpMessageHeaderAccessor headerAccessor) {
@@ -64,8 +72,7 @@ public class WaitingRoomController {
                 examOnline.getName(),
                 participantCount,
                 participants,
-                "A user has left the waiting room."
-        );
+                "A user has left the waiting room.");
 
         messagingTemplate.convertAndSend("/topic/waiting-room/" + accessCode, notification);
     }

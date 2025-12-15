@@ -1,4 +1,5 @@
 package com.example.final_project.entity;
+
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -20,15 +21,12 @@ public class ExamOnline {
     @Column(nullable = false, length = 255)
     private String name; // Tên bài thi
 
-    @Column(name = "num_of_questions", nullable = false)
-    private Integer numberOfQuestions; // Số lượng câu hỏi
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ExamLevel level; // Loại đề thi (khó, dễ, trung bình)
 
-    @Column(name = "submission_deadline", nullable = false)
-    private LocalDateTime submissionDeadline; // Thời gian nộp bài
+    @Column(name = "duration_minutes", nullable = false)
+    private Integer durationMinutes; // Thời gian làm bài (phút)
 
     @Column(name = "passing_score", nullable = false)
     private Integer passingScore; // Điểm đạt
@@ -40,7 +38,7 @@ public class ExamOnline {
     private String accessCode; // Mã tham dự (chuỗi 6 số)
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private ExamStatus status; // Trạng thái bài thi (PENDING, IN_PROGRESS, FINISHED)
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -52,12 +50,15 @@ public class ExamOnline {
     private Category category;
 
     @ManyToMany
-    @JoinTable(
-        name = "exam_online_questions",
-        joinColumns = @JoinColumn(name = "exam_online_id"),
-        inverseJoinColumns = @JoinColumn(name = "question_id")
-    )
+    @JoinTable(name = "exam_online_questions", joinColumns = @JoinColumn(name = "exam_online_id"), inverseJoinColumns = @JoinColumn(name = "question_id"))
+    @Builder.Default
     private Set<Question> questions = new HashSet<>(); // Danh sách câu hỏi cho bài thi
+
+    @Column(name = "started_at")
+    private LocalDateTime startedAt; // Thời gian giáo viên bắt đầu bài thi
+
+    @Column(name = "finished_at")
+    private LocalDateTime finishedAt; // Thời gian giáo viên kết thúc bài thi
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

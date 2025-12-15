@@ -22,7 +22,7 @@ public class ExamHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     // ====== Thông tin bài thi ======
     @ManyToOne(optional = true) // Made optional to support ExamOnline
     @JoinColumn(name = "exam_id")
@@ -56,14 +56,18 @@ public class ExamHistory {
     @Column(name = "correct_count", nullable = false)
     private Integer correctCount;
 
+    @Builder.Default
     @Column(name = "wrong_count", nullable = false)
     private Integer wrongCount = 0;
-    
+
     @Column(name = "passed")
-    private boolean passed;
+    private Boolean passed;
 
     @Column(name = "submitted_at", nullable = false)
     private LocalDateTime submittedAt;
+
+    @Column(name = "time_spent") // Time in seconds
+    private Long timeSpent;
 
     @Column(name = "attempt_number", nullable = false)
     private Integer attemptNumber;
@@ -81,6 +85,9 @@ public class ExamHistory {
         }
         if (this.wrongCount == null) {
             this.wrongCount = 0;
+        }
+        if (this.passed == null) {
+            this.passed = false;
         }
     }
 }

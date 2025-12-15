@@ -11,6 +11,7 @@ public class ExamHistoryResponseDto {
 
     // Thông tin bài thi
     private Long examId;
+    private Long examOnlineId;
     private String examTitle;
     private Integer totalQuestions;
     private String difficulty;
@@ -25,4 +26,6 @@ public class ExamHistoryResponseDto {
     private Integer wrongCount;
     private LocalDateTime submittedAt;
     private Integer attemptNumber;
+    private Long timeSpent;
+    private Boolean passed;
 }

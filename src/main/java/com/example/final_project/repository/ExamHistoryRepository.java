@@ -45,4 +45,7 @@ public interface ExamHistoryRepository extends JpaRepository<ExamHistory, Long> 
 
     @Query("SELECT h FROM ExamHistory h LEFT JOIN FETCH h.details WHERE h.id = :id")
     java.util.Optional<ExamHistory> findByIdWithDetails(@org.springframework.data.repository.query.Param("id") Long id);
+
+    @Query("SELECT eh.student.username, MAX(eh.score) FROM ExamHistory eh WHERE eh.exam.id = :examId GROUP BY eh.student.username ORDER BY MAX(eh.score) DESC")
+    List<Object[]> findTopScoresByExamId(@org.springframework.data.repository.query.Param("examId") Long examId);
 }

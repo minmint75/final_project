@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 public class ExamResultResponseDto {
     private Long examHistoryId;
     private Long examId;
+    private Long examOnlineId;
     private String examTitle;
     private Double score;
     private Integer correctCount;

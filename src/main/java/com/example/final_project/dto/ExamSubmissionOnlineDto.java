@@ -19,4 +19,6 @@ public class ExamSubmissionOnlineDto {
     @NotEmpty
     @Valid
     private List<StudentAnswerOnlineDto> answers;
+
+    private Long timeSpent; // Time spent in seconds
 }

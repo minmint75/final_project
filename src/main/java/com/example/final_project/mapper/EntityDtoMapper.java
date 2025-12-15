@@ -23,6 +23,8 @@ public class EntityDtoMapper {
         dto.setVisibility(question.getVisibility());
         dto.setDifficulty(question.getDifficulty());
         dto.setCreatedBy(question.getCreatedBy());
+        dto.setCreatedByName(question.getCreatedByName());
+        dto.setCreatedByRole(question.getCreatedByRole());
         dto.setCreatedAt(question.getCreatedAt());
 
         if (question.getCategory() != null) {
@@ -58,6 +60,7 @@ public class EntityDtoMapper {
         dto.setDescription(category.getDescription());
         dto.setCreatedByRole(category.getCreatedByRole());
         dto.setCreatedByName(category.getCreatedByName());
+        dto.setCreatedBy(category.getCreatedBy());
         return dto;
     }
 
@@ -68,6 +71,15 @@ public class EntityDtoMapper {
         return new TeacherResponseDto(teacher.getTeacherId(), teacher.getUsername(), teacher.getEmail(),
                 teacher.getAvatar());
     }
+
+    public StudentResponseDto toStudentResponseDto(Student student) {
+        if (student == null) {
+            return null;
+        }
+        return new StudentResponseDto(student.getStudentId(), student.getUsername(), student.getEmail(),
+                student.getAvatar());
+    }
+
 
     public ExamQuestionResponseDto toExamQuestionResponseDto(ExamQuestion examQuestion) {
         if (examQuestion == null) {
@@ -104,6 +116,9 @@ public class EntityDtoMapper {
                 .questionCount(examQuestionDtos.size())
                 .examLevel(exam != null && exam.getExamLevel() != null ? exam.getExamLevel().name() : null)
                 .status(exam != null && exam.getStatus() != null ? exam.getStatus().name() : null)
+                .code(exam.getCode())
+                .url(exam.getUrl())
+                .isPrivate(exam.getStatus() == ExamStatus.PRIVATE)
                 .build();
     }
 
@@ -140,6 +155,7 @@ public class EntityDtoMapper {
         return ExamResultResponseDto.builder()
                 .examHistoryId(examHistory.getId())
                 .examId(examHistory.getExam() != null ? examHistory.getExam().getExamId() : null)
+                .examOnlineId(examHistory.getExamOnline() != null ? examHistory.getExamOnline().getId() : null)
                 .examTitle(examHistory.getExamTitle())
                 .score(examHistory.getScore())
                 .correctCount(examHistory.getCorrectCount())
@@ -168,6 +184,10 @@ public class EntityDtoMapper {
             dto.setExamId(examHistory.getExam().getExamId());
         }
 
+        if (examHistory.getExamOnline() != null) {
+            dto.setExamOnlineId(examHistory.getExamOnline().getId());
+        }
+
         dto.setExamTitle(examHistory.getExamTitle());
         dto.setTotalQuestions(examHistory.getTotalQuestions());
         dto.setDifficulty(examHistory.getDifficulty());
@@ -182,6 +202,8 @@ public class EntityDtoMapper {
         dto.setWrongCount(examHistory.getWrongCount());
         dto.setSubmittedAt(examHistory.getSubmittedAt());
         dto.setAttemptNumber(examHistory.getAttemptNumber());
+        dto.setTimeSpent(examHistory.getTimeSpent());
+        dto.setPassed(examHistory.getPassed());
 
         return dto;
     }

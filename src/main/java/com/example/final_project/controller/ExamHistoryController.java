@@ -36,7 +36,6 @@ public class ExamHistoryController {
     private final ExamRepository examRepository;
     private final ExamOnlineRepository examOnlineRepository;
 
-
     // Lưu lịch sử bài thi
     @PostMapping
     @PreAuthorize("hasRole('STUDENT')")
@@ -53,7 +52,6 @@ public class ExamHistoryController {
         examHistory.setWrongCount(dto.getWrongCount());
         examHistory.setSubmittedAt(LocalDateTime.now());
 
-
         if (dto.getExamId() != null) {
             Exam exam = examRepository.findById(dto.getExamId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Exam not found"));
@@ -66,7 +64,6 @@ public class ExamHistoryController {
             Integer attemptNumber = examHistoryService.countByStudentAndExam(studentId, dto.getExamId()) + 1;
             examHistory.setAttemptNumber(attemptNumber);
 
-
         } else if (dto.getExamOnlineId() != null) {
             ExamOnline examOnline = examOnlineRepository.findById(dto.getExamOnlineId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ExamOnline not found"));
@@ -76,10 +73,12 @@ public class ExamHistoryController {
             examHistory.setDifficulty(examOnline.getLevel().toString());
 
             // Tính số lần thử
-            Integer attemptNumber = examHistoryService.countByStudentAndExamOnline(studentId, dto.getExamOnlineId()) + 1;
+            Integer attemptNumber = examHistoryService.countByStudentAndExamOnline(studentId, dto.getExamOnlineId())
+                    + 1;
             examHistory.setAttemptNumber(attemptNumber);
         } else {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Exam history must be associated with either an Exam (via examId) or an ExamOnline (via examOnlineId).");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Exam history must be associated with either an Exam (via examId) or an ExamOnline (via examOnlineId).");
         }
 
         ExamHistory savedExamHistory = examHistoryService.save(examHistory);
@@ -131,6 +130,20 @@ public class ExamHistoryController {
         return examHistoryService.getExamRanking();
     }
 
+    // Lấy xếp hạng học viên theo điểm số cho một bài thi cụ thể
+    @GetMapping("/ranking/{examId}/by-score")
+    public List<Object[]> getExamRankingByExamId(@PathVariable Long examId) {
+        return examHistoryService.getExamRankingByExamId(examId);
+    }
+
+    // Lấy lịch sử theo bài thi online
+    @GetMapping("/online-exam/{examOnlineId}")
+    public List<ExamHistoryResponseDto> getByExamOnline(@PathVariable Long examOnlineId) {
+        return examHistoryService.getHistoriesByExamOnline(examOnlineId).stream()
+                .map(entityDtoMapper::toExamHistoryResponseDto)
+                .collect(Collectors.toList());
+    }
+
     private Long getAuthenticatedStudentId(Principal principal) {
         if (principal == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Không xác thực được người dùng");
@@ -140,7 +153,8 @@ public class ExamHistoryController {
         if (principalObject instanceof CustomUserDetails) {
             return ((CustomUserDetails) principalObject).getId();
         } else {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Loại principal người dùng không hợp lệ. Không phải CustomUserDetails.");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Loại principal người dùng không hợp lệ. Không phải CustomUserDetails.");
         }
     }
 }
