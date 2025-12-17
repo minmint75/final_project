@@ -51,6 +51,7 @@ public class ExamHistoryController {
         examHistory.setCorrectCount(dto.getCorrectCount());
         examHistory.setWrongCount(dto.getWrongCount());
         examHistory.setSubmittedAt(LocalDateTime.now());
+        examHistory.setTimeSpent(dto.getTimeSpent());
 
         if (dto.getExamId() != null) {
             Exam exam = examRepository.findById(dto.getExamId())
