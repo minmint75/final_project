@@ -127,6 +127,11 @@ public class QuestionController {
                     .body(Map.of("message", rse.getReason(), "error", rse.getStatusCode().toString()));
         }
 
+        if (e instanceof IllegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage(), "error", "Bad Request"));
+        }
+
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }
