@@ -20,6 +20,7 @@ public class QuestionResponseDto {
     private QuestionType type;
     private QuestionVisibility visibility;
     private String difficulty;
+    private Long categoryId;
     private CategoryListDto category;
     private List<AnswerDto> answers;
     private String createdBy;

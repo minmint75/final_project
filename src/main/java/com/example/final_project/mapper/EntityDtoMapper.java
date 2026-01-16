@@ -28,6 +28,7 @@ public class EntityDtoMapper {
         dto.setCreatedAt(question.getCreatedAt());
 
         if (question.getCategory() != null) {
+            dto.setCategoryId(question.getCategory().getId());
             dto.setCategory(toCategoryListDto(question.getCategory()));
             dto.setCategoryName(question.getCategory().getName());
         }
@@ -79,7 +80,6 @@ public class EntityDtoMapper {
         return new StudentResponseDto(student.getStudentId(), student.getUsername(), student.getEmail(),
                 student.getAvatar());
     }
-
 
     public ExamQuestionResponseDto toExamQuestionResponseDto(ExamQuestion examQuestion) {
         if (examQuestion == null) {
