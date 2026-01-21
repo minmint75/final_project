@@ -66,6 +66,9 @@ public class ExamHistory {
     @Column(name = "submitted_at", nullable = false)
     private LocalDateTime submittedAt;
 
+    @Column(name = "started_at")
+    private LocalDateTime startedAt;
+
     @Column(name = "time_spent") // Time in seconds
     private Long timeSpent;
 

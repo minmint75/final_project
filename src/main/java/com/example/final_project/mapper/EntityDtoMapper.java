@@ -171,6 +171,7 @@ public class EntityDtoMapper {
                         : "N/A")
                 .passed(examHistory.getPassed() != null ? examHistory.getPassed() : false)
                 .timeSpent(examHistory.getTimeSpent())
+                .startedAt(examHistory.getStartedAt())
                 .build();
     }
 

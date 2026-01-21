@@ -28,4 +28,5 @@ public class ExamResultResponseDto {
     private String categoryName;
     private boolean passed;
     private Long timeSpent;
+    private LocalDateTime startedAt;
 }
