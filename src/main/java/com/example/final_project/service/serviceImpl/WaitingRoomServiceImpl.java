@@ -16,7 +16,7 @@ public class WaitingRoomServiceImpl implements WaitingRoomService {
     private final Map<Long, String> userAccessCodes = new ConcurrentHashMap<>();
 
     @Override
-    public void addUser(String accessCode, WaitingRoomUserDto user) {
+    public synchronized void addUser(String accessCode, WaitingRoomUserDto user) {
         // Remove user from any other waiting room they might be in
         removeUserFromAllRooms(user.getUserId());
 
@@ -25,10 +25,16 @@ public class WaitingRoomServiceImpl implements WaitingRoomService {
     }
 
     @Override
-    public void removeUser(String accessCode, Long userId) {
+    public synchronized void removeUser(String accessCode, Long userId) {
         if (accessCode != null && waitingRooms.containsKey(accessCode)) {
             waitingRooms.get(accessCode).removeIf(u -> u.getUserId().equals(userId));
-            userAccessCodes.remove(userId);
+
+            // Remove from userAccessCodes if the code matches
+            String registeredCode = userAccessCodes.get(userId);
+            if (accessCode.equals(registeredCode)) {
+                userAccessCodes.remove(userId);
+            }
+
             if (waitingRooms.get(accessCode).isEmpty()) {
                 waitingRooms.remove(accessCode);
             }
@@ -46,7 +52,7 @@ public class WaitingRoomServiceImpl implements WaitingRoomService {
     }
 
     @Override
-    public void removeUserFromAllRooms(Long userId) {
+    public synchronized void removeUserFromAllRooms(Long userId) {
         String accessCode = userAccessCodes.get(userId);
         if (accessCode != null) {
             removeUser(accessCode, userId);
