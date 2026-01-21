@@ -12,5 +12,6 @@ import java.util.Map;
 @AllArgsConstructor
 public class ExamSubmissionRequestDto {
     private Long examId;
+    private Long timeSpent;
     private Map<Long, List<Long>> answers; // Key: questionId, Value: List of answerIds
 }

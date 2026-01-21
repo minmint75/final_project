@@ -169,6 +169,8 @@ public class EntityDtoMapper {
                 .categoryName(examHistory.getExam() != null && examHistory.getExam().getCategory() != null
                         ? examHistory.getExam().getCategory().getName()
                         : "N/A")
+                .passed(examHistory.getPassed() != null ? examHistory.getPassed() : false)
+                .timeSpent(examHistory.getTimeSpent())
                 .build();
     }
 

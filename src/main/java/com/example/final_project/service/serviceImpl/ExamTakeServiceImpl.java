@@ -119,6 +119,7 @@ public class ExamTakeServiceImpl implements ExamTakeService {
                 examHistory.setWrongCount(wrongCount);
                 examHistory.setSubmittedAt(LocalDateTime.now());
                 examHistory.setAttemptNumber(attemptNumber);
+                examHistory.setTimeSpent(submissionDto.getTimeSpent());
 
                 List<ExamHistoryDetail> details = new java.util.ArrayList<>();
                 for (Question question : questions) {
