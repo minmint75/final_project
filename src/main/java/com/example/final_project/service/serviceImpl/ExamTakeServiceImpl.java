@@ -42,6 +42,10 @@ public class ExamTakeServiceImpl implements ExamTakeService {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bài thi đã kết thúc");
                 }
 
+                Student student = studentRepository.findById(studentId)
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "Sinh viên không tồn tại"));
+
                 List<ExamSession> sessions = examSessionRepository.findByStudentAndExam(student, exam);
                 if (sessions.isEmpty()) {
                         ExamSession newSession = ExamSession.builder()
