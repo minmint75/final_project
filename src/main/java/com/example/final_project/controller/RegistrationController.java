@@ -56,11 +56,17 @@ public class RegistrationController {
                     if (teacher.getStatus() != null) {
                         switch (teacher.getStatus()) {
                             case PENDING:
-                                return ResponseEntity.badRequest().body("Tài khoản giáo viên này đang chờ phê duyệt. Vui lòng đợi hoặc liên hệ quản trị viên.");
+                                return ResponseEntity.badRequest().body(
+                                        "Tài khoản giáo viên này đang chờ phê duyệt. Vui lòng đợi hoặc liên hệ quản trị viên.");
                             case REJECTED:
-                                return ResponseEntity.badRequest().body("Email này đã bị từ chối. Vui lòng sử dụng email khác.");
+                                return ResponseEntity.badRequest()
+                                        .body("Email này đã bị từ chối. Vui lòng sử dụng email khác.");
                             case APPROVED:
-                                return ResponseEntity.badRequest().body("Email đã được sử dụng. Vui lòng dùng email khác.");
+                                return ResponseEntity.badRequest()
+                                        .body("Email đã được sử dụng. Vui lòng dùng email khác.");
+                            case LOCKED:
+                                return ResponseEntity.badRequest()
+                                        .body("Tài khoản giáo viên này đã bị khóa. Vui lòng liên hệ quản trị viên.");
                         }
                     }
                 }

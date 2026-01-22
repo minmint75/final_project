@@ -27,4 +27,6 @@ public class ExamResultResponseDto {
     private Integer attemptNumber;
     private String categoryName;
     private boolean passed;
+    private Long timeSpent;
+    private LocalDateTime startedAt;
 }

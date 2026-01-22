@@ -23,11 +23,12 @@ public class ExamTakeServiceImpl implements ExamTakeService {
         private final ExamRepository examRepository;
         private final StudentRepository studentRepository;
         private final ExamHistoryRepository examHistoryRepository;
-        private final QuestionRepository questionRepository;
+
+        private final ExamSessionRepository examSessionRepository;
         private final EntityDtoMapper entityDtoMapper;
 
         @Override
-        @Transactional(readOnly = true)
+        @Transactional
         public ExamTakeResponseDto startExam(Long examId, Long studentId) {
                 Exam exam = examRepository.findById(examId)
                                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -39,6 +40,20 @@ public class ExamTakeServiceImpl implements ExamTakeService {
 
                 if (exam.getEndTime() != null && exam.getEndTime().isBefore(LocalDateTime.now())) {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bài thi đã kết thúc");
+                }
+
+                Student student = studentRepository.findById(studentId)
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "Sinh viên không tồn tại"));
+
+                List<ExamSession> sessions = examSessionRepository.findByStudentAndExam(student, exam);
+                if (sessions.isEmpty()) {
+                        ExamSession newSession = ExamSession.builder()
+                                        .student(student)
+                                        .exam(exam)
+                                        .startedAt(LocalDateTime.now())
+                                        .build();
+                        examSessionRepository.save(newSession);
                 }
 
                 List<QuestionTakeDto> questionDtos = exam.getExamQuestions().stream()
@@ -119,6 +134,37 @@ public class ExamTakeServiceImpl implements ExamTakeService {
                 examHistory.setWrongCount(wrongCount);
                 examHistory.setSubmittedAt(LocalDateTime.now());
                 examHistory.setAttemptNumber(attemptNumber);
+                // --- ANTI-CHEAT: Calculate Real Time Spent ---
+                // --- ANTI-CHEAT: Calculate Real Time Spent ---
+                List<ExamSession> sessions = examSessionRepository.findByStudentAndExam(student, exam);
+                long serverTimeSpent = 0;
+
+                if (!sessions.isEmpty()) {
+                        // Use the earliest session if multiple found (safest for anti-cheat)
+                        ExamSession session = sessions.get(0);
+
+                        java.time.Duration duration = java.time.Duration.between(session.getStartedAt(),
+                                        LocalDateTime.now());
+                        serverTimeSpent = duration.getSeconds();
+
+                        examHistory.setStartedAt(session.getStartedAt()); // Save startedAt from session
+
+                        // Clean up ALL sessions for this attempt
+                        examSessionRepository.deleteAll(sessions);
+                } else {
+                        // Fallback if no session found (should unlikely happen if logic is correct)
+                        serverTimeSpent = submissionDto.getTimeSpent() != null ? submissionDto.getTimeSpent() : 0;
+                        examHistory.setStartedAt(LocalDateTime.now().minusSeconds(serverTimeSpent)); // Estimate
+                                                                                                     // startedAt
+                }
+
+                // Allow a small buffer (e.g. 10 seconds) for latency
+                // Or mostly trust server time. Let's trust server time primarily,
+                // but if serverTime is unreasonably huge (e.g. user left tab open for days),
+                // it might skew stats. However, for "Time Spent", keeping real time is correct.
+
+                examHistory.setTimeSpent(serverTimeSpent);
+                // --------------------------------------------
 
                 List<ExamHistoryDetail> details = new java.util.ArrayList<>();
                 for (Question question : questions) {
