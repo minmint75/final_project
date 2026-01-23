@@ -55,18 +55,17 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             // Ignore if no existing token
         }
 
-        // Generate a cryptographically secure, URL-safe token
+        // Generate a 6-digit numeric OTP
         SecureRandom secureRandom = new SecureRandom();
-        byte[] tokenBytes = new byte[32];
-        secureRandom.nextBytes(tokenBytes);
-        String token = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
+        int otp = 100000 + secureRandom.nextInt(900000); // Generates number between 100000-999999
+        String token = String.valueOf(otp);
         LocalDateTime expiryDate = LocalDateTime.now().plusHours(1);
 
         PasswordResetToken myToken = new PasswordResetToken(token, email, expiryDate);
         tokenRepository.save(myToken);
 
         emailService.sendPasswordResetEmail(email, token);
-        
+
         return token; // Return OTP for development/testing
     }
 
