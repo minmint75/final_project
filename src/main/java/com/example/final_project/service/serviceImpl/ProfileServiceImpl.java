@@ -42,13 +42,13 @@ public class ProfileServiceImpl implements ProfileService {
             Admin admin = adminOpt.get();
             String oldAvatar = admin.getAvatar();
             updateUsernameAndAvatar(admin, request.getUsername(), request.getAvatar());
-            
+
             // Delete old avatar file if it's being replaced
             if (request.getAvatar() != null && oldAvatar != null && !oldAvatar.equals(request.getAvatar())) {
                 String filename = oldAvatar.replace("/uploads/", "");
                 fileStorageService.deleteFile(filename);
             }
-            
+
             adminRepository.save(admin);
             return;
         }
@@ -59,13 +59,13 @@ public class ProfileServiceImpl implements ProfileService {
             Teacher teacher = teacherOpt.get();
             String oldAvatar = teacher.getAvatar();
             updateUsernameAndAvatar(teacher, request.getUsername(), request.getAvatar());
-            
+
             // Delete old avatar file if it's being replaced
             if (request.getAvatar() != null && oldAvatar != null && !oldAvatar.equals(request.getAvatar())) {
                 String filename = oldAvatar.replace("/uploads/", "");
                 fileStorageService.deleteFile(filename);
             }
-            
+
             teacherRepository.save(teacher);
             return;
         }
@@ -76,13 +76,13 @@ public class ProfileServiceImpl implements ProfileService {
             Student student = studentOpt.get();
             String oldAvatar = student.getAvatar();
             updateUsernameAndAvatar(student, request.getUsername(), request.getAvatar());
-            
+
             // Delete old avatar file if it's being replaced
             if (request.getAvatar() != null && oldAvatar != null && !oldAvatar.equals(request.getAvatar())) {
                 String filename = oldAvatar.replace("/uploads/", "");
                 fileStorageService.deleteFile(filename);
             }
-            
+
             studentRepository.save(student);
             return;
         }
@@ -103,6 +103,7 @@ public class ProfileServiceImpl implements ProfileService {
             profile.put("email", admin.getEmail());
             profile.put("avatar", admin.getAvatar());
             profile.put("role", "ADMIN");
+            // Admin entity doesn't have createdAt field
             return profile;
         }
 
@@ -115,6 +116,7 @@ public class ProfileServiceImpl implements ProfileService {
             profile.put("email", teacher.getEmail());
             profile.put("avatar", teacher.getAvatar());
             profile.put("role", "TEACHER");
+            profile.put("createdAt", teacher.getCreatedAt());
             return profile;
         }
 
@@ -127,6 +129,7 @@ public class ProfileServiceImpl implements ProfileService {
             profile.put("email", student.getEmail());
             profile.put("avatar", student.getAvatar());
             profile.put("role", "STUDENT");
+            profile.put("createdAt", student.getCreatedAt());
             return profile;
         }
 
